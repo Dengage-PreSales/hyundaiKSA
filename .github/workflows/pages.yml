@@ -1,0 +1,121 @@
+# =============================================================================
+# PUBLISH THE SITE.
+#
+# Adapted from the Dengage demo factory's workflow, which earned its shape the
+# hard way on 6 August 2026: five consecutive Pages deployments failed while
+# the build itself succeeded in seconds. The three behaviours below are the
+# fixes, and each one matters:
+#
+#   1. The deploy action's ten minute timeout is a clamp that cannot be raised,
+#      and deployments have been observed landing AFTER the action cancelled.
+#      So the deploy step runs with continue-on-error and the confirmation step
+#      at the bottom owns the verdict, by reading the live site itself.
+#
+#   2. A cancelled Pages deployment wedges every deployment after it, and
+#      recovering needs a human. concurrency with cancel-in-progress FALSE
+#      makes deployments queue instead of cancelling each other. Batch changes
+#      into one push; never push twice in quick succession.
+#
+#   3. workflow_dispatch allows a retry without an empty commit, which is
+#      itself what cancels an in-flight deploy.
+#
+# ONE-TIME SETTING: Settings > Pages > Source must be "GitHub Actions".
+# Nothing deploys before that switch is flipped.
+# =============================================================================
+name: Pages
+
+on:
+  push:
+    branches: [claude/hyundai-ksa-demo-prep-e4rd8u, main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # enablement: true asks the action to create the Pages site itself on the
+      # first run, so no one has to click Settings > Pages by hand. If the token
+      # is not allowed to, the run fails on this step and the manual flip in the
+      # README is the fallback.
+      - uses: actions/configure-pages@v5
+        id: pages
+        with:
+          enablement: true
+
+      # A commit marker, so "is the live site current" has an answer:
+      #   curl https://dengage-presales.github.io/hyundaiKSA/pages-commit.txt
+      - name: Stamp the commit being published
+        run: |
+          printf '%s\n' "${{ github.sha }}" > pages-commit.txt
+          printf 'built %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> pages-commit.txt
+
+      # Only what a visitor loads. docs/, panel/, deck/ and supabase/ stay
+      # readable on GitHub but are not served from the demo URL.
+      - name: Stage only the published site
+        run: |
+          mkdir -p _site
+          for p in index.html en ar assets js manifest.webmanifest icons; do
+            if [ -e "$p" ]; then cp -r "$p" _site/; fi
+          done
+          cp pages-commit.txt _site/
+          touch _site/.nojekyll
+          echo "Publishing:"
+          du -sh _site
+          find _site -type f | wc -l | sed 's/^/  files: /'
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      # Advisory, not the verdict: see the header note. The confirmation step
+      # below reads the live site and decides the run.
+      - id: deployment
+        uses: actions/deploy-pages@v5
+        continue-on-error: true
+        with:
+          timeout: 600000
+          error_count: 25
+
+      - name: Confirm the published site carries this commit
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -uo pipefail
+          base="${{ steps.pages.outputs.base_url }}"
+          url="${base%/}/"
+          want="${{ github.sha }}"
+          echo "Expecting $want at ${url}pages-commit.txt"
+          for attempt in $(seq 1 60); do
+            got="$(curl -s --max-time 20 "${url}pages-commit.txt?cb=$attempt" | head -1 | tr -d '\r\n')" || got=""
+            if [ "$got" = "$want" ]; then
+              echo "Confirmed on attempt $attempt: the live site serves $got"
+              exit 0
+            fi
+            echo "  attempt $attempt: live site reports '${got:-nothing}', waiting"
+            sleep 30
+          done
+          echo "The live site never served this commit within the window."
+          curl -s -H "Authorization: Bearer $GITHUB_TOKEN" \
+               -H "Accept: application/vnd.github+json" \
+               "https://api.github.com/repos/$GITHUB_REPOSITORY/pages" || true
+          echo
+          echo "::error::The live site still serves '${got:-nothing}' rather than $want."
+          echo "::error::Deployments have landed up to twenty minutes after the deploy"
+          echo "::error::action cancelled itself, so re-check the site in a few minutes,"
+          echo "::error::then re-run this workflow from the Actions tab if still behind."
+          exit 1

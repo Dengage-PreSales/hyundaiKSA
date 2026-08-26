@@ -1,0 +1,35 @@
+/* ============================================================================
+   Friendly aliases for the site's own font files, used by the demo controls.
+   The replica's page typography does not need these: the site's compiled CSS
+   declares its generated families itself, and the build rewrites those
+   declarations' URLs to ../fonts/. These aliases exist so demo-control styles
+   can say "HyundaiMedium" without depending on a build-generated name.
+
+   The fallback stacks mirror the metric-compatible Arial adjustments the site
+   itself declares, so deleting the .otf files changes nothing structurally.
+   ========================================================================== */
+
+@font-face {
+  font-family: 'HyundaiRegular';
+  src: url('../fonts/HyundaiSansHead_Regular.otf') format('opentype');
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'HyundaiMedium';
+  src: url('../fonts/HyundaiSansHead_Medium.otf') format('opentype');
+  font-weight: 500;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'HyundaiBold';
+  src: url('../fonts/HyundaiSansHead_Bold.otf') format('opentype');
+  font-weight: 700;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'HyundaiArabic';
+  src: url('../fonts/GESSTwoMedium_ENNumbers.otf') format('opentype');
+  font-weight: 500;
+  font-display: swap;
+}

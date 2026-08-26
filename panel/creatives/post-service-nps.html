@@ -1,0 +1,42 @@
+<!-- hyundai_demo_post-service-nps | Content type: Popup (custom HTML).
+     Score buttons drive a hidden radio group; the engine's Dn.postQuestion
+     validates and writes the answer as contact tags. The visually-hidden
+     class is load bearing: remove it and the score row unstyles. -->
+<style>
+  #hyx-nps { font-family: 'Hyundai Sans Head', Arial, sans-serif; background: #fff; color: #0e1215; border-radius: 6px; box-shadow: 0 16px 40px rgba(0,0,0,.22); max-width: 460px; padding: 24px 24px 20px; }
+  #hyx-nps h2 { margin: 0 0 4px; font-size: 18px; color: #002c5f; }
+  #hyx-nps .ar { font-size: 14px; color: #002c5f; margin: 0 0 14px; direction: rtl; }
+  #hyx-nps .visually-hidden { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+  #hyx-nps .row { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 14px; }
+  #hyx-nps label.s { flex: 1 0 34px; text-align: center; border: 1px solid #d9dde1; border-radius: 4px; padding: 9px 0; font-size: 13px; cursor: pointer; }
+  #hyx-nps input:checked + label.s, #hyx-nps label.s:has(> input:checked) { background: #002c5f; color: #fff; border-color: #002c5f; }
+  #hyx-nps .legend { display: flex; justify-content: space-between; font-size: 10.5px; color: #6e7275; margin: -8px 0 14px; }
+  #hyx-nps .cta { width: 100%; border: 0; background: #002c5f; color: #fff; font: inherit; font-size: 14px; font-weight: 600; padding: 12px 16px; border-radius: 4px; cursor: pointer; }
+  #hyx-nps .done { display: none; color: #10633f; font-size: 13.5px; padding-top: 10px; }
+  #hyx-nps .container[data-dn-is-submitted="true"] .done { display: block; }
+  #hyx-nps .container[data-dn-is-submitted="true"] .hide-after { display: none; }
+</style>
+<div id="hyx-nps">
+  <div class="container">
+    <h2>How was your service visit?</h2>
+    <p class="ar">كيف كانت زيارتك الأخيرة لمركز الصيانة؟</p>
+    <div class="hide-after">
+      <div class="row" data-dn-name="nps_service" data-dn-min-selection="1" data-dn-max-selection="1">
+        <label class="s"><input class="visually-hidden" type="radio" name="hyx-nps-score" value="0">0</label>
+        <label class="s"><input class="visually-hidden" type="radio" name="hyx-nps-score" value="1">1</label>
+        <label class="s"><input class="visually-hidden" type="radio" name="hyx-nps-score" value="2">2</label>
+        <label class="s"><input class="visually-hidden" type="radio" name="hyx-nps-score" value="3">3</label>
+        <label class="s"><input class="visually-hidden" type="radio" name="hyx-nps-score" value="4">4</label>
+        <label class="s"><input class="visually-hidden" type="radio" name="hyx-nps-score" value="5">5</label>
+        <label class="s"><input class="visually-hidden" type="radio" name="hyx-nps-score" value="6">6</label>
+        <label class="s"><input class="visually-hidden" type="radio" name="hyx-nps-score" value="7">7</label>
+        <label class="s"><input class="visually-hidden" type="radio" name="hyx-nps-score" value="8">8</label>
+        <label class="s"><input class="visually-hidden" type="radio" name="hyx-nps-score" value="9">9</label>
+        <label class="s"><input class="visually-hidden" type="radio" name="hyx-nps-score" value="10">10</label>
+      </div>
+      <div class="legend"><span>Not likely</span><span>Extremely likely</span></div>
+      <button type="button" class="cta" onclick="Dn.postQuestion(); Dn.sendClick('nps-submit');">Send</button>
+    </div>
+    <p class="done">Thank you. Your feedback goes straight to the service team.</p>
+  </div>
+</div>

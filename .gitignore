@@ -1,0 +1,12 @@
+# Scraped source pages used only during the build. Never committed, never served.
+reference/
+
+node_modules/
+.DS_Store
+*.pyc
+__pycache__/
+.venv/
+
+# Internal pre-sales material: never published in this public repository.
+docs/
+deck/

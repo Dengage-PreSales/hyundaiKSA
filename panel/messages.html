@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hyundai KSA demo: channel copy</title>
+<style>
+  body { font-family: Arial, sans-serif; background: #f5f5f5; color: #14181b; margin: 0; padding: 32px 20px 60px; }
+  .wrap { max-width: 860px; margin: 0 auto; }
+  h1 { font-size: 22px; color: #002c5f; }
+  .intro { color: #555; font-size: 13.5px; margin-bottom: 26px; }
+  h2 { font-size: 15px; color: #002c5f; margin: 30px 0 10px; border-bottom: 2px solid #002c5f; padding-bottom: 6px; }
+  .msg { background: #fff; border: 1px solid #e4e7ec; border-radius: 8px; padding: 14px 16px; margin-bottom: 10px; display: flex; gap: 14px; align-items: flex-start; }
+  .msg .txt { flex: 1; }
+  .msg .lbl { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: #888; margin-bottom: 4px; }
+  .msg .body { font-size: 14px; line-height: 1.5; white-space: pre-wrap; }
+  .msg .body[dir="rtl"] { text-align: right; }
+  .msg button { flex: none; border: 1px solid #002c5f; color: #002c5f; background: #fff; border-radius: 4px; font-size: 12px; padding: 6px 12px; cursor: pointer; }
+  .msg button.done { background: #002c5f; color: #fff; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Channel copy for the Hyundai KSA demo</h1>
+  <p class="intro">Every message the run of show can need, ready to paste into the Dengage panel. The copy button puts the body on the clipboard. SMS bodies stay inside one 160-character segment for English and one 70-character segment for Arabic where possible.</p>
+
+  <h2>Web push</h2>
+  <div class="msg"><div class="txt"><div class="lbl">Booking confirmed, EN (title | body)</div><div class="body">Booking confirmed
+Your TUCSON test drive is set. We will call to agree the time.</div></div><button>Copy</button></div>
+  <div class="msg"><div class="txt"><div class="lbl">Booking confirmed, AR</div><div class="body" dir="rtl">تم تأكيد الحجز
+تجربة قيادة توسان محجوزة، سنتصل بك لتحديد الموعد.</div></div><button>Copy</button></div>
+  <div class="msg"><div class="txt"><div class="lbl">Abandoned booking rescue, EN</div><div class="body">Still thinking it over?
+Your TUCSON test drive is saved. One tap picks the time.</div></div><button>Copy</button></div>
+  <div class="msg"><div class="txt"><div class="lbl">Abandoned booking rescue, AR</div><div class="body" dir="rtl">ما زلت تفكر؟
+حجزك لتجربة قيادة توسان محفوظ، اختر الوقت بضغطة واحدة.</div></div><button>Copy</button></div>
+  <div class="msg"><div class="txt"><div class="lbl">Service reminder, EN</div><div class="body">Service due
+Your Hyundai is due for its checkup. Book in under a minute.</div></div><button>Copy</button></div>
+  <div class="msg"><div class="txt"><div class="lbl">Service reminder, AR</div><div class="body" dir="rtl">موعد الصيانة
+حان موعد فحص سيارتك، احجز خلال أقل من دقيقة.</div></div><button>Copy</button></div>
+
+  <h2>SMS</h2>
+  <div class="msg"><div class="txt"><div class="lbl">Test drive follow-up, EN (137 chars)</div><div class="body">Hyundai: your TUCSON test drive is waiting. Reply YES or book online, and the keys are ready at your branch. Opt out: reply STOP.</div></div><button>Copy</button></div>
+  <div class="msg"><div class="txt"><div class="lbl">Test drive follow-up, AR</div><div class="body" dir="rtl">هيونداي: تجربة قيادة توسان بانتظارك. احجز عبر الموقع وسنجهز كل شيء في فرعك. لإيقاف الرسائل أرسل STOP.</div></div><button>Copy</button></div>
+  <div class="msg"><div class="txt"><div class="lbl">Warranty window, EN</div><div class="body">Hyundai: your warranty ends in 45 days. Extend your cover this week and keep every visit worry-free. Opt out: reply STOP.</div></div><button>Copy</button></div>
+  <div class="msg"><div class="txt"><div class="lbl">Warranty window, AR</div><div class="body" dir="rtl">هيونداي: ينتهي ضمان سيارتك خلال 45 يوماً. مدد التغطية هذا الأسبوع. لإيقاف الرسائل أرسل STOP.</div></div><button>Copy</button></div>
+
+  <h2>WhatsApp</h2>
+  <div class="msg"><div class="txt"><div class="lbl">Service booking confirmation, EN</div><div class="body">Hello {{name}} 👋
+Your service booking at Hyundai {{branch}} is confirmed for {{date}}.
+Your advisor will meet you at the express lane. Need to change the time? Just reply here.</div></div><button>Copy</button></div>
+  <div class="msg"><div class="txt"><div class="lbl">Service booking confirmation, AR</div><div class="body" dir="rtl">أهلاً {{name}} 👋
+تم تأكيد حجز صيانة سيارتك في فرع {{branch}} يوم {{date}}.
+مستشار الخدمة بانتظارك في المسار السريع. لتغيير الموعد رد على هذه الرسالة.</div></div><button>Copy</button></div>
+  <div class="msg"><div class="txt"><div class="lbl">Launch moment, EN</div><div class="body">The first Saudi-made Hyundai is almost here 🇸🇦
+Built in the Kingdom, for the Kingdom. Want early access to the reveal and launch offers? Reply YES and you are on the list.</div></div><button>Copy</button></div>
+  <div class="msg"><div class="txt"><div class="lbl">Launch moment, AR</div><div class="body" dir="rtl">أول هيونداي تصنع في المملكة 🇸🇦 اقترب موعدها.
+صنعت في المملكة، من أجل المملكة. للحصول على أولوية الاطلاع وعروض الإطلاق، أرسل نعم.</div></div><button>Copy</button></div>
+
+  <h2>Email subject lines</h2>
+  <div class="msg"><div class="txt"><div class="lbl">Abandoned booking, EN (subject | preheader)</div><div class="body">Your TUCSON is still waiting | Pick a time and the keys are ready</div></div><button>Copy</button></div>
+  <div class="msg"><div class="txt"><div class="lbl">Abandoned booking, AR</div><div class="body" dir="rtl">توسان ما زالت بانتظارك | اختر الوقت والمفاتيح جاهزة</div></div><button>Copy</button></div>
+  <div class="msg"><div class="txt"><div class="lbl">Warranty renewal, EN</div><div class="body">45 days left on your cover | Extend it in two clicks</div></div><button>Copy</button></div>
+  <div class="msg"><div class="txt"><div class="lbl">Post-service thank you, EN</div><div class="body">How did we do? | Two taps, and it makes the next visit better</div></div><button>Copy</button></div>
+
+  <h2>App inbox</h2>
+  <div class="msg"><div class="txt"><div class="lbl">Welcome message, EN (title | body)</div><div class="body">Welcome to Hyundai updates
+Offers, service reminders and launch news will arrive here, even without notification permission.</div></div><button>Copy</button></div>
+  <div class="msg"><div class="txt"><div class="lbl">Welcome message, AR</div><div class="body" dir="rtl">أهلاً بك في تحديثات هيونداي
+ستصلك هنا العروض وتذكيرات الصيانة وأخبار الإطلاقات، حتى بدون إذن الإشعارات.</div></div><button>Copy</button></div>
+  <div class="msg"><div class="txt"><div class="lbl">National Day, EN</div><div class="body">National Day offers are live
+Cashback, free registration and light instalments, until 23 September.</div></div><button>Copy</button></div>
+  <div class="msg"><div class="txt"><div class="lbl">National Day, AR</div><div class="body" dir="rtl">عروض اليوم الوطني متاحة الآن
+استرداد نقدي وتسجيل مجاني وأقساط مريحة حتى 23 سبتمبر.</div></div><button>Copy</button></div>
+</div>
+<script>
+  document.addEventListener('click', function (e) {
+    if (e.target.tagName !== 'BUTTON') return;
+    var body = e.target.parentElement.querySelector('.body').innerText;
+    navigator.clipboard.writeText(body).then(function () {
+      e.target.textContent = 'Copied';
+      e.target.classList.add('done');
+      setTimeout(function () { e.target.textContent = 'Copy'; e.target.classList.remove('done'); }, 1400);
+    });
+  });
+</script>
+</body>
+</html>

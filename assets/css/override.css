@@ -1,0 +1,73 @@
+/* ============================================================================
+   Corrections a static capture of a scripted page needs.
+
+   The live site reveals sections with scroll-driven animation classes and
+   inline styles. The build strips the inline opacity states; these rules
+   settle the class-driven half so every section is simply visible, which is
+   the end state the animations were heading for anyway.
+   ========================================================================== */
+
+/* Only the reveal system's own elements are settled. A blanket .opacity-0
+   rule is wrong here: the site also uses that class to keep loader overlays
+   (backdrop blurs) hidden, and forcing those visible blurs the page. */
+.move-x-o, .move-y-o, .move-o {
+  opacity: 1 !important;
+  transform: none !important;
+}
+.move-o-wrapper { opacity: 1 !important; }
+
+/* The capture can freeze nodes mid-transition. Settle transitions inside the
+   page content only; the demo controls keep their own. */
+main *, main *::before, main *::after { transition-duration: .01s !important; }
+
+/* The live site scrolls through GSAP ScrollSmoother: a fixed, viewport-sized
+   wrapper whose inner content is translated by script. With no script, that
+   wrapper is a scroll lock. Returning it to normal flow restores native
+   scrolling; nothing else changes, because the wrapper carries no styling of
+   its own. */
+#smooth-wrapper {
+  position: static !important;
+  inset: auto !important;
+  height: auto !important;
+  overflow: visible !important;
+}
+#smooth-content { transform: none !important; }
+#smooth-content > div[style*="height"] { height: auto !important; }
+
+/* The second reveal system: [data-animate] subtrees keep .blured_ele children
+   at opacity 0 until script stamps data-animate-ready. No script, so settle
+   them visible. */
+html.preloader-mounted :is([data-animate], [data-mobile-animate]) :is(.blured_ele, .blured_ele_text) {
+  opacity: 1 !important;
+}
+
+/* Decorative scroll-linked backdrop blur layers. On the live site GSAP fades
+   them with scroll; statically they either sit invisible or smear a whole
+   section, so they are simply off. */
+.blur_layer, [class*="backdrop-blur"] { opacity: 0 !important; }
+
+/* The live property's consent banner and geolocation gate belong to the live
+   property. With no script behind them they are dead overlays, so both stay
+   hidden: the banner by its own distinctive class set, the geolocation popup
+   only on the gateway pages that carry it. */
+[class*="cookie"], [id*="cookie-banner"] { display: none !important; }
+div[class*="sm:p-12"].fixed.bottom-0 { display: none !important; }
+[data-gateway] section.fixed.inset-0 { display: none !important; }
+
+/* The gateway hero's background is mounted by script on the live property and
+   is absent from a static capture, which leaves a black stage. The showroom
+   still from the same campaign takes its place. */
+[data-gateway] main { position: relative; }
+[data-gateway] main::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: url("../img/cdn/cmssection/49333/image-(8).png") center / cover no-repeat;
+  opacity: .9;
+}
+
+/* Loading spinners spin for content that will never arrive on a static page
+   (the Google Maps embed, image loaders). Off, and the map pane gets a quiet
+   map-grey ground instead of a void. */
+.loader_spinner { display: none !important; }
+[class*="map_container"], [id*="map"], [class*="mapWrapper"] { background: #e8eaed; }
