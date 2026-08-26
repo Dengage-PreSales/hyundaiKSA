@@ -132,6 +132,19 @@ From any machine, the public campaign surface every visitor's browser reads:
 curl -s https://pcdn.dengage.com/p/push/28/99d9b8fb-0c62-5a85-3e43-2402554d93a5/dengage_sdk_loader.js | head -c 200
 ```
 
-answers "is the SDK serving". Whether a specific campaign is live is read in
-the panel's campaign list; a fired card that shows nothing is the fastest
-honest signal.
+answers "is the SDK serving". And this one answers "did the pastes land" —
+it downloads the campaign manifest the SDK actually reads (the filename is
+inside the loader; note the `/onsite/` segment in its path) and lists every
+Hyundai trigger it carries:
+
+```
+BASE=https://pcdn.dengage.com/p/push/28/99d9b8fb-0c62-5a85-3e43-2402554d93a5
+curl -s "$BASE/onsite/$(curl -s $BASE/dengage_sdk_loader.js | grep -o 'campaigns\.[a-z0-9]*\.js')" \
+  | grep -o 'hyundai_demo_[a-z-]*' | sort -u
+```
+
+All ten trigger names from the table in section 1 should print. Before the
+paste session it prints nothing — that is the "not pasted yet" reading, not
+an error. Whether a campaign is also configured correctly is read in the
+panel's campaign list; a fired card that shows nothing is the fastest honest
+signal.
