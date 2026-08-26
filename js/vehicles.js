@@ -34,12 +34,19 @@
         { id: 'staria-wagon',   name: { en: 'STARIA Passenger', ar: 'ستاريا واجن' },    category: 'MPV',   price: 136224 , pdp: true }
     ];
 
-    /* The menu cutout images the site itself serves, for the models it
-       publishes one for. A model without one renders as a text card, exactly
-       as an absent image should: nothing is substituted or invented. The
-       paths are spelled out in full because the asset pruner keeps whatever
-       these literal strings reference. */
+    /* A card image for every model, all served by the site itself: the
+       car-finder cutouts where the site publishes one, the model's own
+       page banner otherwise. Paths are spelled out in full because the
+       asset pruner keeps whatever these literal strings reference. */
     var CUTOUTS = {
+        'grandi10':       'assets/img/cdn/cmssection/38622/Banner-des-grand-(1)-copy.webp',
+        'sonata':         'assets/img/cdn/cmssection/18522/Banner-des-(4)-(1).webp',
+        'creta-grand':    'assets/img/cdn/cmssection/34258/Banner-des-(4).webp',
+        'kona':           'assets/img/cdn/cmssection/33818/final-banne.webp',
+        'venue':          'assets/img/cdn/cmssection/48029/home-vineu-banner.webp',
+        'staria-premium': 'assets/img/cdn/cmssection/37693/final-banner-des-staria-.webp',
+        'staria-van':     'assets/img/cdn/cmssection/37710/final-banner-des-van-1.webp',
+        'staria-wagon':   'assets/img/cdn/cmssection/37748/Gallery-card-2-(1).webp',
         'accent':    'assets/img/cdn/vehiclemodel/29285/Hyundai-ACCENT.webp',
         'creta':     'assets/img/cdn/vehiclemodel/29319/Hyundai-CRETA.webp',
         'elantra':   'assets/img/cdn/vehiclemodel/29325/Hyundai-ELANTRA.webp',

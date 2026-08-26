@@ -76,6 +76,15 @@ header .dropdown_menu_wrapper { transition: height .22s ease; }
    cover (overscroll, the band beside a fixed-width capture) shows black. */
 html, body { background: #ffffff; }
 
+/* The footer's dark slab is an inner element; once the collapsed link
+   columns are opened they can outgrow it, putting white text on the white
+   page. The footer itself carries the slab's paint. And the site's
+   auto-inverting text trick (mix-blend difference) assumed the original
+   dark page ground: over the demo's white ground it inverts the whole
+   footer at paint time, so inside the footer colors are literal. */
+footer { background: rgb(27, 27, 27); }
+footer, footer * { mix-blend-mode: normal !important; }
+
 /* Loading spinners spin for content that will never arrive on a static page
    (the Google Maps embed, image loaders). Off, and the map pane gets a quiet
    map-grey ground instead of a void. */

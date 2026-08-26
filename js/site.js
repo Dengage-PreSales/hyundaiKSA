@@ -672,6 +672,45 @@
         });
     }
 
+    /* The footer's link columns arrive collapsed (a scripted reveal with no
+       move- class, so the build's settle pass never saw them). Open every
+       collapsed block that actually holds content; the demo layer's own
+       closed menus stay closed. */
+    function dressFooter() {
+        $$('footer *').forEach(function (el) {
+            if (el.className && /dps-/.test(el.className.toString())) return;
+            var cs = getComputedStyle(el);
+            if (cs.display === 'none') return;
+            if (parseFloat(cs.opacity) === 0 || el.clientHeight === 0 ||
+                cs.visibility === 'hidden' || cs.transform !== 'none') {
+                if (el.clientHeight === 0 && el.textContent.trim()) {
+                    el.style.height = 'auto';
+                    el.style.maxHeight = 'none';
+                }
+                el.style.opacity = '1';
+                el.style.transform = 'none';
+                el.style.visibility = 'visible';
+            }
+        });
+    }
+
+    /* The service-booking page pairs its form with an illustration the live
+       site mounts by script; the left column otherwise sits empty. The
+       page gets the property's own service-booking photograph. */
+    function dressServicePage() {
+        if (location.pathname.indexOf('service-booking') === -1) return;
+        var heads = $$('main h1, main h2').filter(function (h) { return h.textContent.trim().length > 4; });
+        var head = heads[0];
+        if (!head) return;
+        var col = head.parentElement;
+        if (!col || col.querySelector('img')) return;
+        var img = document.createElement('img');
+        img.src = sitePrefix() + 'assets/img/cdn/cmssection/23079/service-booking.webp';
+        img.alt = '';
+        img.style.cssText = 'width:100%;max-width:640px;border-radius:8px;margin-top:28px;display:block;';
+        col.appendChild(img);
+    }
+
     /* The colour configurator is fed by an API call the live site makes when
        a colour is picked; its car renders are simply not in a static capture,
        and a stage with no car on it reads as a fault. The section rests. */
@@ -959,6 +998,8 @@
         wireDeadLinks();
         wireLeadForms();
         hideColorConfigurators();
+        dressFooter();
+        dressServicePage();
         paintHearts();
 
         if (window.Panels) window.Panels.init();

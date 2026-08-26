@@ -161,9 +161,12 @@ def rewrite_assets(t: str, rel: str) -> str:
                lambda m: rel + "assets/img/cdn/" + m.group(1), t)
     # Whatever still points at their _next tree cannot resolve here.
     t = re.sub(r"/_next/image\?url=([^\s\"'&]+)[^\s\"']*", r"\1", t)
-    # The handful of images served from the site root rather than the CDN.
-    t = re.sub(r'src="/images/([^"?]+)(\?[^"]*)?"',
-               lambda m: 'src="' + rel + 'assets/img/site/' + m.group(1) + '"', t)
+    # The handful of images served from the site root rather than the CDN,
+    # in every spelling they appear in: absolute to the live host, or
+    # root-relative inside src AND srcset candidate lists.
+    t = t.replace("https://hyundaiksa.com/images/", "/images/")
+    t = re.sub(r"/images/([^\s\"'<>,?\\]+)(\?[^\s\"'<>,]*)?",
+               lambda m: rel + "assets/img/site/" + m.group(1), t)
     return t
 
 
@@ -424,6 +427,9 @@ def build(name: str, spec: dict) -> str:
         hm = re.search(r"<header\b.*?</header>", home_src, re.S)
         if hm:
             body = hm.group(0) + body
+        fm = re.search(r"<footer\b.*?</footer>", home_src, re.S)
+        if fm:
+            body = body + fm.group(0)
     body = strip_scripts(body)
     # The gateway heroes' Explore buttons had script-driven navigation; they
     # become plain links into the Mynaghi tenant of the page's language.
