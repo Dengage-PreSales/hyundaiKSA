@@ -352,6 +352,191 @@
         });
     }
 
+    /* ------------------------------------------------------------------ */
+    /* Header. The live site drives all of this with script: dropdowns are
+       height-animated wrappers, the white "force-hovered" dress arrives on
+       hover and on scroll, and the burger mounts a full-screen menu that a
+       static capture never contains. The same affordances are rebuilt here,
+       with the replica's own site map behind the burger.                    */
+
+    function langCode() {
+        return (document.documentElement.getAttribute('lang') || 'en').indexOf('ar') === 0 ? 'ar' : 'en';
+    }
+
+    function sitePrefix() {
+        var m = location.pathname.match(/^(.*?)\/(en|ar)\//);
+        if (m) return m[1] + '/';
+        return location.pathname.replace(/[^/]*$/, '');
+    }
+
+    function buildSiteMenu() {
+        if ($('#site-menu') || !window.Catalog) return;
+        var ar = langCode() === 'ar';
+        var pre = sitePrefix();
+        var lang = langCode();
+        function page(rest) { return pre + lang + '/mynaghi/' + rest; }
+        var groups = [
+            { title: ar ? 'سيدان' : 'Sedan', cat: 'Sedan' },
+            { title: ar ? 'الدفع الرباعي' : 'SUV', cat: 'SUV' },
+            { title: ar ? 'العائلية' : 'MPV', cat: 'MPV' }
+        ];
+        var rows = groups.map(function (g) {
+            var cars = window.Catalog.all().filter(function (c) { return c.category === g.cat; });
+            return '<div class="dps-menu-group"><h3>' + g.title + '</h3>' +
+                cars.map(function (c) {
+                    return '<a class="dps-menu-link" href="' + page('models/' + c.path + '/index.html') + '">' +
+                        window.Catalog.escapeAttr(c.name) + '</a>';
+                }).join('') + '</div>';
+        }).join('');
+        var links = '<div class="dps-menu-group"><h3>' + (ar ? 'تصفح' : 'Browse') + '</h3>' +
+            '<a class="dps-menu-link" href="' + page('index.html') + '">' + (ar ? 'الرئيسية' : 'Home') + '</a>' +
+            '<a class="dps-menu-link" href="' + page('offers/index.html') + '">' + (ar ? 'العروض' : 'Offers') + '</a>' +
+            '<a class="dps-menu-link" href="' + page('offers/back-to-school/index.html') + '">' + (ar ? 'عرض العودة للمدارس' : 'Back to School offer') + '</a>' +
+            '<a class="dps-menu-link" href="' + page('service-booking/index.html') + '">' + (ar ? 'حجز الصيانة' : 'Service booking') + '</a>' +
+            '<a class="dps-menu-link" href="' + page('contact-us/index.html') + '">' + (ar ? 'اتصل بنا' : 'Contact us') + '</a>' +
+            '<a class="dps-menu-link" href="' + pre + (ar ? 'en' : 'ar') + '/mynaghi/index.html">' + (ar ? 'English' : 'العربية') + '</a>' +
+            '</div>';
+        var aside = document.createElement('aside');
+        aside.className = 'dps-drawer';
+        aside.id = 'site-menu';
+        aside.setAttribute('aria-label', ar ? 'القائمة' : 'Menu');
+        aside.innerHTML =
+            '<div class="dps-drawer-head dps-modal-head"><h2>' + (ar ? 'القائمة' : 'Menu') + '</h2>' +
+            '<button type="button" class="dps-x" data-close="1" aria-label="' + (ar ? 'إغلاق' : 'Close') + '">&times;</button></div>' +
+            '<div class="dps-drawer-body">' + rows + links + '</div>';
+        document.body.appendChild(aside);
+    }
+
+    /* The featured-models carousel mounts its car cutouts (and its click
+       navigation) with script on the live site, so the capture holds cards
+       with a name and no car. Models the site publishes a cutout for get it
+       back; every card becomes the door to its own page. */
+    function dressModelCards() {
+        if (!window.Catalog) return;
+        var pre = sitePrefix();
+        var lang = langCode();
+        $$('.model-card').forEach(function (card) {
+            var label = (card.getAttribute('models_name') || '').trim().toLowerCase();
+            if (!label) return;
+            var model = null;
+            window.Catalog.all().forEach(function (c) {
+                if (model) return;
+                if (c.nameEn.toLowerCase() === label || c.nameAr.toLowerCase() === label ||
+                    c.id === label) model = c;
+            });
+            if (!model) return;
+            if (model.image && !card.querySelector('img')) {
+                var img = document.createElement('img');
+                img.src = pre + model.image;
+                img.alt = model.name;
+                img.style.cssText = 'position:absolute;left:0;right:0;top:50%;' +
+                    'transform:translateY(-40%);width:100%;max-height:62%;' +
+                    'object-fit:contain;pointer-events:none;';
+                card.appendChild(img);
+            }
+            card.style.cursor = 'pointer';
+            card.addEventListener('click', function () {
+                location.href = pre + lang + '/mynaghi/models/' + model.path + '/index.html';
+            });
+        });
+    }
+
+    function wireHeaderMenus() {
+        var header = $('header.site-header');
+        if (!header) return;
+
+        var hovering = false;
+        var openLi = null;
+        var closeTimer = null;
+
+        function paintState() {
+            var scrolled = (window.scrollY || 0) > 24;
+            header.classList.toggle('force-hovered', hovering || scrolled || !!openLi);
+        }
+
+        function closeMenu() {
+            if (!openLi) return;
+            var wrap = $('.dropdown_menu_wrapper', openLi);
+            var btn = $('button[aria-haspopup]', openLi);
+            if (wrap) wrap.style.height = '0px';
+            if (btn) btn.setAttribute('aria-expanded', 'false');
+            openLi = null;
+            paintState();
+        }
+
+        function openMenu(li) {
+            if (openLi === li) return;
+            closeMenu();
+            var wrap = $('.dropdown_menu_wrapper', li);
+            var btn = $('button[aria-haspopup]', li);
+            if (!wrap) return;
+            wrap.style.height = wrap.scrollHeight + 'px';
+            if (btn) btn.setAttribute('aria-expanded', 'true');
+            openLi = li;
+            paintState();
+        }
+
+        $$('button[aria-haspopup]', header).forEach(function (btn) {
+            var li = btn.closest('li');
+            if (!li || !$('.dropdown_menu_wrapper', li)) return;
+            btn.setAttribute('aria-expanded', 'false');
+            btn.addEventListener('click', function (event) {
+                event.preventDefault();
+                event.stopPropagation();
+                if (openLi === li) { closeMenu(); } else { openMenu(li); }
+            });
+            li.addEventListener('mouseenter', function () {
+                window.clearTimeout(closeTimer);
+                openMenu(li);
+            });
+            li.addEventListener('mouseleave', function () {
+                window.clearTimeout(closeTimer);
+                closeTimer = window.setTimeout(closeMenu, 220);
+            });
+        });
+
+        header.addEventListener('mouseenter', function () { hovering = true; paintState(); });
+        header.addEventListener('mouseleave', function () { hovering = false; paintState(); });
+        window.addEventListener('scroll', paintState, { passive: true });
+        document.addEventListener('click', function (event) {
+            if (openLi && !openLi.contains(event.target)) closeMenu();
+        });
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape') closeMenu();
+        });
+        paintState();
+
+        /* Find a Car opens a scripted finder on the live site; the model grid
+           on the tenant home is this replica's finder. */
+        var lang = langCode();
+        var pre = sitePrefix();
+        $$('li > span.cursor-pointer', header).forEach(function (el) {
+            var label = el.textContent.trim();
+            if (label !== 'Find a Car' && label.indexOf('بحث عن سيارة') === -1 &&
+                label.indexOf('ابحث عن سيارة') === -1) return;
+            el.addEventListener('click', function () {
+                var grid = $('#dn_inline_target_in_grid');
+                if (grid) { grid.scrollIntoView({ behavior: 'smooth', block: 'center' }); return; }
+                location.href = pre + lang + '/mynaghi/index.html';
+            });
+        });
+
+        /* The location chip routes to the regional gateway; the login button
+           gets the same notice as any other page the demo does not carry;
+           both burgers open the site map. */
+        $$('button', header).forEach(function (btn) {
+            if (/^(Jeddah|جدة)$/.test(btn.textContent.trim())) {
+                btn.addEventListener('click', function () { location.href = pre + 'index.html'; });
+            }
+        });
+        var login = $('.profile_button', header);
+        if (login) login.setAttribute('data-demo-dead', '1');
+        buildSiteMenu();
+        $$('.menu_toggler, .menu_close_icon', header).forEach(function (btn) {
+            btn.setAttribute('data-open', '#site-menu');
+        });
+    }
+
     /* The 17 shared popup creatives render in cross-origin iframes and ask the
        host page for its theme. Answer with Hyundai's, so every one of them
        arrives dressed in Hyundai blue. Protocol from the factory's boot.js. */
@@ -411,6 +596,8 @@
 
         answerThemeRequests();
         wireOverlays();
+        wireHeaderMenus();
+        dressModelCards();
         wireFunnelButtons();
         wireCarousels();
         wireAccordions();

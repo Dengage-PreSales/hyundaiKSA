@@ -15,8 +15,6 @@
 (function (window, document) {
     'use strict';
 
-    var CDN = 'assets/img/cdn/';
-
     var MODELS = [
         { id: 'accent',         name: { en: 'ACCENT',           ar: 'أكسنت' },          category: 'Sedan', price: 71484 , pdp: true },
         { id: 'azera',          name: { en: 'AZERA',            ar: 'أزيرا' },          category: 'Sedan', price: 158436 , pdp: true },
@@ -38,16 +36,18 @@
 
     /* The menu cutout images the site itself serves, for the models it
        publishes one for. A model without one renders as a text card, exactly
-       as an absent image should: nothing is substituted or invented. */
+       as an absent image should: nothing is substituted or invented. The
+       paths are spelled out in full because the asset pruner keeps whatever
+       these literal strings reference. */
     var CUTOUTS = {
-        'accent':    CDN + 'vehiclemodel/29285/Hyundai-ACCENT.webp',
-        'creta':     CDN + 'vehiclemodel/29319/Hyundai-CRETA.webp',
-        'elantra':   CDN + 'vehiclemodel/29325/Hyundai-ELANTRA.webp',
-        'santa-fe':  CDN + 'vehiclemodel/29333/Hyundai-SANTA-FE.webp',
-        'tucson':    CDN + 'vehiclemodel/29411/Hyundai-TUCSON.webp',
-        'azera':     CDN + 'vehiclemodel/29419/Hyundai-AZERA.webp',
-        'palisade':  CDN + 'vehiclemodel/29428/Hyundai-PALISADE.webp',
-        'stargazer': CDN + 'vehiclemodel/48524/Hyundai-STARGAZER.webp'
+        'accent':    'assets/img/cdn/vehiclemodel/29285/Hyundai-ACCENT.webp',
+        'creta':     'assets/img/cdn/vehiclemodel/29319/Hyundai-CRETA.webp',
+        'elantra':   'assets/img/cdn/vehiclemodel/29325/Hyundai-ELANTRA.webp',
+        'santa-fe':  'assets/img/cdn/vehiclemodel/29333/Hyundai-SANTA-FE.webp',
+        'tucson':    'assets/img/cdn/vehiclemodel/29411/Hyundai-TUCSON.webp',
+        'azera':     'assets/img/cdn/vehiclemodel/29419/Hyundai-AZERA.webp',
+        'palisade':  'assets/img/cdn/vehiclemodel/29428/Hyundai-PALISADE.webp',
+        'stargazer': 'assets/img/cdn/vehiclemodel/48524/Hyundai-STARGAZER.webp'
     };
 
     function lang() {

@@ -68,6 +68,10 @@ div[class*="sm:p-12"].fixed.bottom-0 { display: none !important; }
   opacity: .9;
 }
 
+/* The header dropdowns are height-animated by script on the live site; the
+   demo layer sets the height, this eases it. */
+header .dropdown_menu_wrapper { transition: height .22s ease; }
+
 /* Loading spinners spin for content that will never arrive on a static page
    (the Google Maps embed, image loaders). Off, and the map pane gets a quiet
    map-grey ground instead of a void. */

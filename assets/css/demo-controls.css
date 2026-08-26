@@ -202,6 +202,27 @@ html.dps-locked { overflow: hidden; }
 .scenario.gesture .slug, .scenario.elsewhere .slug { font-family: var(--dps-font); }
 .scenario.action { border-inline-start: 3px solid var(--hy-red); }
 
+/* ---- site map drawer (behind the header burger) -------------------------- */
+
+#site-menu .dps-menu-group { margin: 0 0 16px; }
+#site-menu .dps-menu-group h3 {
+  font-family: var(--dps-font-medium);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--hy-navy);
+  margin: 0 0 6px;
+}
+#site-menu a.dps-menu-link {
+  display: block;
+  padding: 8px 10px;
+  border-radius: var(--dps-radius);
+  color: #14181b;
+  text-decoration: none;
+  font-size: 14px;
+}
+#site-menu a.dps-menu-link:hover { background: var(--hy-tint); color: var(--hy-blue); }
+
 /* ---- quick reference ---------------------------------------------------- */
 
 .ref-details { margin: 0 0 12px; border: 1px solid var(--hy-line); border-radius: var(--dps-radius); }
