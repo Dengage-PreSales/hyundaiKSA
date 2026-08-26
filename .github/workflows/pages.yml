@@ -19,14 +19,15 @@
 #   3. workflow_dispatch allows a retry without an empty commit, which is
 #      itself what cancels an in-flight deploy.
 #
-# ONE-TIME SETTING: Settings > Pages > Source must be "GitHub Actions".
-# Nothing deploys before that switch is flipped.
+# RETIRED FROM AUTOMATIC DUTY on 26 August 2026: Settings > Pages > Source is
+# now "Deploy from a branch" (main), so GitHub's own pages-build-deployment
+# publishes every push to main by itself. This workflow no longer runs on
+# push; it stays dispatchable by hand as a fallback, and only works again if
+# the Pages source is switched back to "GitHub Actions".
 # =============================================================================
 name: Pages
 
 on:
-  push:
-    branches: [claude/hyundai-ksa-demo-prep-e4rd8u, main]
   workflow_dispatch:
 
 permissions:
