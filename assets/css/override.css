@@ -41,10 +41,12 @@ html.preloader-mounted :is([data-animate], [data-mobile-animate]) :is(.blured_el
   opacity: 1 !important;
 }
 
-/* Decorative scroll-linked backdrop blur layers. On the live site GSAP fades
-   them with scroll; statically they either sit invisible or smear a whole
-   section, so they are simply off. */
-.blur_layer, [class*="backdrop-blur"] { opacity: 0 !important; }
+/* Decorative scroll-linked blur layers. On the live site GSAP fades them with
+   scroll; statically they either sit invisible or smear a whole section, so
+   they are simply off. ONLY the .blur_layer decorations: the navbar, hero
+   buttons, spec chips and tab switchers are frosted-glass UI that also carry
+   backdrop-blur classes, and killing those hides the site's own controls. */
+.blur_layer { opacity: 0 !important; }
 
 /* The live property's consent banner and geolocation gate belong to the live
    property. With no script behind them they are dead overlays, so both stay

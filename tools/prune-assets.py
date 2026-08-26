@@ -16,13 +16,14 @@ CDN = ROOT / "assets" / "img" / "cdn"
 referenced = set()
 sources = list(ROOT.glob("*.html")) + list(ROOT.glob("en/**/*.html")) + \
           list(ROOT.glob("ar/**/*.html")) + list((ROOT / "assets" / "css").rglob("*.css")) + \
-          list((ROOT / "js").glob("*.js"))
+          list((ROOT / "js").glob("*.js")) + list((ROOT / "panel").rglob("*.html"))
 for f in sources:
     t = f.read_text(errors="ignore")
     # Parentheses are part of their filenames (image-(8).png); only quotes,
     # whitespace and angle brackets delimit a reference in markup.
     for m in re.finditer(r"assets/img/cdn/([^\s\"'<>]+)", t):
-        path = urllib.parse.unquote(m.group(1).split("&quot")[0]).rstrip("),;")
+        path = urllib.parse.unquote(
+            m.group(1).split("?")[0].split("&quot")[0]).rstrip("),;")
         referenced.add(path)
 
 kept = 0

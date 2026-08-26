@@ -39,6 +39,16 @@ const PAGES = {
   'contact.ar': 'https://hyundaiksa.com/ar/mynaghi/contact-us',
 };
 
+// The rest of the model range. Paths come from the home-page grid links —
+// note Elantra's capitalised path, which is how the live site spells it.
+for (const slug of ['accent', 'azera', 'Elantra', 'grandi10', 'kona', 'palisade',
+                    'sonata', 'stargazer', 'staria-premium', 'staria-van',
+                    'staria-wagon', 'venue', 'creta', 'creta-grand']) {
+  const key = slug.toLowerCase();
+  PAGES[`${key}.en`] = `https://hyundaiksa.com/en/mynaghi/models/${slug}`;
+  PAGES[`${key}.ar`] = `https://hyundaiksa.com/ar/mynaghi/models/${slug}`;
+}
+
 const UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36';
 const cache = new Map();
 

@@ -120,6 +120,15 @@ html.dps-locked { overflow: hidden; }
 [dir="rtl"] .dps-modal { --dps-flip: -1; }
 .dps-modal.open { display: flex; transform: translate(calc(var(--dps-flip, 1) * -50%), -50%) scale(1); }
 
+/* The property's stylesheet blanks every [role=dialog]'s background and shadow
+   with !important (its own dialogs paint on an inner node). These dialogs
+   paint on the root node, so the surface is restored at higher priority. */
+.dps-modal[role="dialog"], .dps-drawer[role="dialog"], #dengage-panel, #inbox, #test-drive {
+  background: #ffffff !important;
+  background: var(--hy-surface) !important;
+  box-shadow: var(--dps-shadow) !important;
+}
+
 .dps-modal-head, .dps-drawer-head {
   display: flex;
   align-items: center;

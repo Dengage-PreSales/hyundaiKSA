@@ -18,22 +18,22 @@
     var CDN = 'assets/img/cdn/';
 
     var MODELS = [
-        { id: 'accent',         name: { en: 'ACCENT',           ar: 'أكسنت' },          category: 'Sedan', price: 71484 },
-        { id: 'azera',          name: { en: 'AZERA',            ar: 'أزيرا' },          category: 'Sedan', price: 158436 },
-        { id: 'elantra',        name: { en: 'ELANTRA',          ar: 'النترا' },         category: 'Sedan', price: 86694,  path: 'Elantra' },
-        { id: 'grandi10',       name: { en: 'GRAND i10',        ar: 'جراند i10' },      category: 'Sedan', price: 56239 },
-        { id: 'sonata',         name: { en: 'SONATA',           ar: 'سوناتا' },         category: 'Sedan', price: 107904 },
-        { id: 'creta',          name: { en: 'CRETA',            ar: 'كريتا' },          category: 'SUV',   price: 86200 },
-        { id: 'creta-grand',    name: { en: 'CRETA GRAND',      ar: 'كريتا جراند' },    category: 'SUV',   price: 102054 },
-        { id: 'kona',           name: { en: 'KONA',             ar: 'كونا' },           category: 'SUV',   price: 92544 },
-        { id: 'palisade',       name: { en: 'PALISADE',         ar: 'باليسيد' },        category: 'SUV',   price: 177039 },
+        { id: 'accent',         name: { en: 'ACCENT',           ar: 'أكسنت' },          category: 'Sedan', price: 71484 , pdp: true },
+        { id: 'azera',          name: { en: 'AZERA',            ar: 'أزيرا' },          category: 'Sedan', price: 158436 , pdp: true },
+        { id: 'elantra',        name: { en: 'ELANTRA',          ar: 'النترا' },         category: 'Sedan', price: 86694,  path: 'Elantra' , pdp: true },
+        { id: 'grandi10',       name: { en: 'GRAND i10',        ar: 'جراند i10' },      category: 'Sedan', price: 56239 , pdp: true },
+        { id: 'sonata',         name: { en: 'SONATA',           ar: 'سوناتا' },         category: 'Sedan', price: 107904 , pdp: true },
+        { id: 'creta',          name: { en: 'CRETA',            ar: 'كريتا' },          category: 'SUV',   price: 86200 , pdp: true },
+        { id: 'creta-grand',    name: { en: 'CRETA GRAND',      ar: 'كريتا جراند' },    category: 'SUV',   price: 102054 , pdp: true },
+        { id: 'kona',           name: { en: 'KONA',             ar: 'كونا' },           category: 'SUV',   price: 92544 , pdp: true },
+        { id: 'palisade',       name: { en: 'PALISADE',         ar: 'باليسيد' },        category: 'SUV',   price: 177039 , pdp: true },
         { id: 'santa-fe',       name: { en: 'SANTA FE',         ar: 'سانتافي' },        category: 'SUV',   price: 138429, pdp: true },
         { id: 'tucson',         name: { en: 'TUCSON',           ar: 'توسان' },          category: 'SUV',   price: 101258, pdp: true },
-        { id: 'venue',          name: { en: 'VENUE',            ar: 'فينيو' },          category: 'SUV',   price: 77334 },
-        { id: 'stargazer',      name: { en: 'STARGAZER',        ar: 'ستارجايزر' },      category: 'MPV',   price: 79147 },
-        { id: 'staria-premium', name: { en: 'STARIA Premium',   ar: 'ستاريا بريميوم' }, category: 'MPV',   price: 180294 },
-        { id: 'staria-van',     name: { en: 'STARIA Van',       ar: 'ستاريا فان' },     category: 'MPV',   price: null },
-        { id: 'staria-wagon',   name: { en: 'STARIA Passenger', ar: 'ستاريا واجن' },    category: 'MPV',   price: 136224 }
+        { id: 'venue',          name: { en: 'VENUE',            ar: 'فينيو' },          category: 'SUV',   price: 77334 , pdp: true },
+        { id: 'stargazer',      name: { en: 'STARGAZER',        ar: 'ستارجايزر' },      category: 'MPV',   price: 79147 , pdp: true },
+        { id: 'staria-premium', name: { en: 'STARIA Premium',   ar: 'ستاريا بريميوم' }, category: 'MPV',   price: 180294 , pdp: true },
+        { id: 'staria-van',     name: { en: 'STARIA Van',       ar: 'ستاريا فان' },     category: 'MPV',   price: null , pdp: true },
+        { id: 'staria-wagon',   name: { en: 'STARIA Passenger', ar: 'ستاريا واجن' },    category: 'MPV',   price: 136224 , pdp: true }
     ];
 
     /* The menu cutout images the site itself serves, for the models it

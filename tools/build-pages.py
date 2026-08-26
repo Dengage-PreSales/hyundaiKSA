@@ -25,10 +25,10 @@ PAGES = {
     "gateway.en": {"out": "en/index.html",                             "type": "other"},
     "home.en":    {"out": "en/mynaghi/index.html",                     "type": "home"},
     "home.ar":    {"out": "ar/mynaghi/index.html",                     "type": "home"},
-    "tucson.en":  {"out": "en/mynaghi/models/tucson/index.html",       "type": "product", "product": "tucson", "price": "101258"},
-    "tucson.ar":  {"out": "ar/mynaghi/models/tucson/index.html",       "type": "product", "product": "tucson", "price": "101258"},
-    "santafe.en": {"out": "en/mynaghi/models/santa-fe/index.html",     "type": "product", "product": "santa-fe", "price": "138429"},
-    "santafe.ar": {"out": "ar/mynaghi/models/santa-fe/index.html",     "type": "product", "product": "santa-fe", "price": "138429"},
+    "tucson.en":  {"out": "en/mynaghi/models/tucson/index.html",       "type": "product", "product": "tucson", "price": "101258", "cat": "SUV"},
+    "tucson.ar":  {"out": "ar/mynaghi/models/tucson/index.html",       "type": "product", "product": "tucson", "price": "101258", "cat": "SUV"},
+    "santafe.en": {"out": "en/mynaghi/models/santa-fe/index.html",     "type": "product", "product": "santa-fe", "price": "138429", "cat": "SUV"},
+    "santafe.ar": {"out": "ar/mynaghi/models/santa-fe/index.html",     "type": "product", "product": "santa-fe", "price": "138429", "cat": "SUV"},
     "offers.en":  {"out": "en/mynaghi/offers/index.html",              "type": "promotion"},
     "offers.ar":  {"out": "ar/mynaghi/offers/index.html",              "type": "promotion"},
     "campaign.en": {"out": "en/mynaghi/offers/back-to-school/index.html", "type": "promotion", "promotion": "back-to-school"},
@@ -50,6 +50,34 @@ ROUTES = {
     "/mynaghi/service-booking": "{lang}/mynaghi/service-booking/index.html",
     "/mynaghi/contact-us": "{lang}/mynaghi/contact-us/index.html",
 }
+
+# The rest of the model range, generated: slug -> (live URL path, price in SAR
+# from the model grid, category). Elantra's path is capitalised on the live
+# site; staria-van's price is not published, so its page carries no price.
+MODEL_PAGES = {
+    "accent":         ("accent",         "71484",  "Sedan"),
+    "azera":          ("azera",          "158436", "Sedan"),
+    "elantra":        ("Elantra",        "86694",  "Sedan"),
+    "grandi10":       ("grandi10",       "56239",  "Sedan"),
+    "sonata":         ("sonata",         "107904", "Sedan"),
+    "creta":          ("creta",          "86200",  "SUV"),
+    "creta-grand":    ("creta-grand",    "102054", "SUV"),
+    "kona":           ("kona",           "92544",  "SUV"),
+    "palisade":       ("palisade",       "177039", "SUV"),
+    "venue":          ("venue",          "77334",  "SUV"),
+    "stargazer":      ("stargazer",      "79147",  "MPV"),
+    "staria-premium": ("staria-premium", "180294", "MPV"),
+    "staria-van":     ("staria-van",     None,     "MPV"),
+    "staria-wagon":   ("staria-wagon",   "136224", "MPV"),
+}
+for _slug, (_path, _price, _cat) in MODEL_PAGES.items():
+    for _lang in ("en", "ar"):
+        _spec = {"out": f"{_lang}/mynaghi/models/{_path}/index.html",
+                 "type": "product", "product": _slug, "cat": _cat}
+        if _price:
+            _spec["price"] = _price
+        PAGES[f"{_slug}.{_lang}"] = _spec
+    ROUTES[f"/mynaghi/models/{_path}"] = "{lang}/mynaghi/models/" + _path + "/index.html"
 
 
 def rel_to_root(out_path: str) -> str:
@@ -105,15 +133,31 @@ def settle_inline_styles(t: str) -> str:
     return re.sub(r"<[a-zA-Z][^>]*>", fix, t)
 
 
+def strip_lazy_reservations(t: str) -> str:
+    """Lazily-mounted sections reserve their live heights through inline
+    content-visibility placeholders. With no script to mount the content the
+    reservation is just a band of blank page, so both declarations go. Only
+    style attributes are touched; the site CSS text stays as shipped."""
+    def fix(m):
+        style = m.group(1)
+        if "content-visibility" not in style and "contain-intrinsic-size" not in style:
+            return m.group(0)
+        style = re.sub(r"content-visibility:\s*[^;\"]+;?", "", style)
+        style = re.sub(r"contain-intrinsic-size:\s*[^;\"]+;?", "", style)
+        return 'style="' + style + '"'
+    return re.sub(r'style="([^"]*)"', fix, t)
+
+
 def rewrite_assets(t: str, rel: str) -> str:
     t = t.replace("&amp;", "&")
     # Parentheses are legal and PRESENT in their filenames (image-(8).png), so
     # the path class must allow them; quotes, whitespace and angle brackets
     # still terminate, which is what actually delimits a URL in markup.
-    # & is excluded from the path class so an inline-style url(&quot;...&quot;)
-    # terminates before the entity; query strings (which do carry &) are the
-    # second group and are dropped anyway.
-    t = re.sub(CDN_PREFIX + r"([^\s\"'<>?&]+)(\?[^\s\"'<>]*)?",
+    # A bare & is ALSO legal in their filenames (exterior&interior.webp) and
+    # stays in the path — but &quot;/&amp; entities terminate it, so an
+    # inline-style url(&quot;...&quot;) still ends before the entity. Query
+    # strings are the second group and are dropped.
+    t = re.sub(CDN_PREFIX + r"((?:[^\s\"'<>?&]|&(?!quot;|amp;))+)(\?[^\s\"'<>]*)?",
                lambda m: rel + "assets/img/cdn/" + m.group(1), t)
     # Whatever still points at their _next tree cannot resolve here.
     t = re.sub(r"/_next/image\?url=([^\s\"'&]+)[^\s\"']*", r"\1", t)
@@ -220,16 +264,20 @@ def rewrite_links(t: str, rel: str) -> str:
 
 
 def wire_test_drive(t: str, product: str) -> str:
-    """Every 'Book a Test Drive' affordance opens the funnel modal."""
+    """Every 'Book a Test Drive' affordance opens the funnel modal. The label
+    is either the element's own text or, on the model pages, an aria-label
+    with the visible text nested inside a span; both shapes get the hook."""
     def fix(match):
         tag = match.group(0)
         if "data-book-test-drive" in tag:
             return tag
         return tag[:-1] + ' data-book-test-drive="' + product + '">'
     for label in ("Book a Test Drive", "Book A Test Drive", "احجز تجربة قيادة",
-                  "Schedule your Test Drive", "احجز تجربة القيادة"):
-        pattern = r"<(?:a|button)\b[^>]*>(?=[^<]*" + re.escape(label) + ")"
-        t = re.sub(pattern, fix, t)
+                  "Schedule your Test Drive", "احجز تجربة القيادة",
+                  "قم بحجز تجربة قيادة"):
+        esc = re.escape(label)
+        t = re.sub(r'<(?:a|button)\b[^>]*aria-label="' + esc + r'"[^>]*>', fix, t)
+        t = re.sub(r"<(?:a|button)\b[^>]*>(?=[^<]*" + esc + ")", fix, t)
     return t
 
 
@@ -367,6 +415,15 @@ def build(name: str, spec: dict) -> str:
     body_attrs, body = body_m.group(1), body_m.group(2)
 
     video_thumbs, hero_list = ld_media(src)
+    # The live gateway is chromeless: its only navigation is the scripted
+    # geolocation popup, which a static page cannot run. The tenant home's
+    # header takes its place, injected raw so every later pass (scripts,
+    # assets, links) treats it like the rest of the page.
+    if name.startswith("gateway"):
+        home_src = (HYD / f"home.{lang}.html").read_text(errors="ignore")
+        hm = re.search(r"<header\b.*?</header>", home_src, re.S)
+        if hm:
+            body = hm.group(0) + body
     body = strip_scripts(body)
     # The gateway heroes' Explore buttons had script-driven navigation; they
     # become plain links into the Mynaghi tenant of the page's language.
@@ -375,6 +432,7 @@ def build(name: str, spec: dict) -> str:
         body = re.sub(r'<button\b(?=[^>]*aria-label="(?:اكتشف|Explore|استكشف)")',
                       '<button onclick="location.href=\'' + target + '\'" ', body)
     body = settle_inline_styles(body)
+    body = strip_lazy_reservations(body)
     body = replace_videos(body, video_thumbs)
     body = backfill_hero_images(body, hero_list)
     body = rewrite_assets(body, rel)
@@ -409,8 +467,10 @@ def build(name: str, spec: dict) -> str:
     if name.startswith("gateway"):
         extra_attrs += ' data-gateway="1"'
     if spec.get("product"):
-        extra_attrs += f' data-product-id="{spec["product"]}" data-price="{spec["price"]}"'
-        extra_attrs += ' data-category-path="Vehicles>SUV"'
+        extra_attrs += f' data-product-id="{spec["product"]}"'
+        if spec.get("price"):
+            extra_attrs += f' data-price="{spec["price"]}"'
+        extra_attrs += f' data-category-path="Vehicles>{spec.get("cat", "SUV")}"'
     if spec.get("promotion"):
         extra_attrs += f' data-promotion-id="{spec["promotion"]}"'
     # The frozen body height and pointer state go; the font variable classes stay.
