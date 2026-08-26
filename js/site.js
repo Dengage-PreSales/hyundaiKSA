@@ -315,6 +315,18 @@
         });
     }
 
+    function toast(message) {
+        var note = $('#dps-toast');
+        if (!note) {
+            note = document.createElement('div');
+            note.id = 'dps-toast';
+            document.body.appendChild(note);
+        }
+        note.textContent = message;
+        note.classList.add('show');
+        window.setTimeout(function () { note.classList.remove('show'); }, 2400);
+    }
+
     /* Links the replica does not cover open a small notice instead of a 404
        or, worse, the live site mid demo. */
     function wireDeadLinks() {
@@ -322,15 +334,52 @@
             var dead = event.target.closest ? event.target.closest('[data-demo-dead]') : null;
             if (!dead) return;
             event.preventDefault();
-            var note = $('#dps-toast');
-            if (!note) {
-                note = document.createElement('div');
-                note.id = 'dps-toast';
-                document.body.appendChild(note);
+            toast(t('notPart'));
+        });
+    }
+
+    /* The lead forms post to the live property's backend, which this replica
+       does not carry (its README says so). Submitting one instead does what
+       the story needs: the visitor becomes an identified DPS- contact. The
+       footer newsletter hands over to the shared capture campaign, whose
+       popup writes the contact, with consent, the native way. Inquire Now is
+       a lead-form modal on the live site; the contact page is this replica's
+       inquiry desk. */
+    function wireLeadForms() {
+        var ar = langCode() === 'ar';
+        var thanks = ar ? 'شكراً لك — أصبحت الآن جهة اتصال معرّفة في هذا العرض.'
+                        : 'Thank you — you are now an identified contact in this demo.';
+
+        function mintIdentity() {
+            var identity = window.DemoIdentity;
+            if (identity && !identity.contactKey && typeof identity.mintKey === 'function') {
+                var key = identity.mintKey(Date.now());
+                if (window.DengageEvents.setContactKey(key)) {
+                    identity.contactKey = key;
+                    try { window.sessionStorage.setItem(identity.storageKey, key); } catch (err) { /* noop */ }
+                }
             }
-            note.textContent = t('notPart');
-            note.classList.add('show');
-            window.setTimeout(function () { note.classList.remove('show'); }, 2200);
+        }
+
+        document.addEventListener('submit', function (event) {
+            var form = event.target;
+            if (!form || form.tagName !== 'FORM') return;
+            if (form.closest('#dengage-panel, #test-drive, #inbox, #site-menu')) return;
+            event.preventDefault();
+            if (form.closest('footer')) {
+                window.DengageEvents.scenario('subscription-popup');
+                return;
+            }
+            mintIdentity();
+            toast(thanks);
+        });
+
+        var pre = sitePrefix();
+        var lang = langCode();
+        $$('button[aria-label="Inquire Now"], button[aria-label="اطلبه الآن"]').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                location.href = pre + lang + '/mynaghi/contact-us/index.html';
+            });
         });
     }
 
@@ -604,6 +653,7 @@
         wireTabs();
         wireCountdowns();
         wireDeadLinks();
+        wireLeadForms();
         paintHearts();
 
         if (window.Panels) window.Panels.init();
