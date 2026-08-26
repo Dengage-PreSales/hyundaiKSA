@@ -239,6 +239,15 @@
             if (!wrapper) return;
             var slides = $$(':scope > .swiper-slide', wrapper);
             if (slides.length < 2) return;
+            /* The capture froze each slide at the capture viewport's width
+               (an inline 1440px) with pixel translations to match. On any
+               other screen that leaves a bare band beside the hero, so the
+               slides are re-based on percentages of their own container. */
+            var rtlPage = document.documentElement.dir === 'rtl';
+            slides.forEach(function (s, i) {
+                s.style.width = '100%';
+                s.style.transform = 'translateX(' + (rtlPage ? i * 100 : -i * 100) + '%)';
+            });
             var scopeEl = root.closest('section') || root.parentElement || root;
             var dots = $$('.swiper-pagination-bullet', scopeEl);
             var at = 0, timer = null;
@@ -653,10 +662,23 @@
 
         var pre = sitePrefix();
         var lang = langCode();
-        $$('button[aria-label="Inquire Now"], button[aria-label="اطلبه الآن"]').forEach(function (btn) {
+        var inquiryLabels = ['Inquire Now', 'Buy Now', 'اطلبه الآن', 'اشتره الآن', 'اشترِ الآن'];
+        $$('main button').forEach(function (btn) {
+            var name = (btn.getAttribute('aria-label') || btn.textContent || '').trim();
+            if (inquiryLabels.indexOf(name) === -1) return;
             btn.addEventListener('click', function () {
                 location.href = pre + lang + '/mynaghi/contact-us/index.html';
             });
+        });
+    }
+
+    /* The colour configurator is fed by an API call the live site makes when
+       a colour is picked; its car renders are simply not in a static capture,
+       and a stage with no car on it reads as a fault. The section rests. */
+    function hideColorConfigurators() {
+        $$('.model-color-wrapper').forEach(function (w) {
+            var sec = w.closest('section') || w.parentElement.parentElement;
+            if (sec) sec.style.display = 'none';
         });
     }
 
@@ -936,6 +958,7 @@
         wireCountdowns();
         wireDeadLinks();
         wireLeadForms();
+        hideColorConfigurators();
         paintHearts();
 
         if (window.Panels) window.Panels.init();
