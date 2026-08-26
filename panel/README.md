@@ -120,9 +120,12 @@ joins to. That is the unified-profile moment.
 ## 5. Message copy for every channel
 
 `messages.html` in this folder renders the push, SMS, WhatsApp and email
-copy for the demo scenarios, in English and Arabic, each with a copy button.
-Open it straight from disk. Use it during the paste session and on the call
-whenever a channel needs prose.
+copy for the demo scenarios and the wider ownership lifecycle — saved-car
+updates, purchase anniversary, geofence welcome, registration renewal,
+service winback, safety recall, test-drive reschedule, delivery day and
+accessories — in English and Arabic, each with a copy button. Open it
+straight from disk or at the published `/panel/messages.html`. Use it
+during the paste session and on the call whenever a channel needs prose.
 
 ## 6. Verifying without the panel
 
@@ -148,3 +151,49 @@ paste session it prints nothing — that is the "not pasted yet" reading, not
 an error. Whether a campaign is also configured correctly is read in the
 panel's campaign list; a fired card that shows nothing is the fastest honest
 signal.
+
+## 7. The automotive event dictionary
+
+The demo deliberately speaks the panel's standard ecommerce language, so
+every existing journey, RFM view and segment works unchanged: a model page
+is a product view, a test-drive request is an add-to-cart, a confirmed
+booking is an order. That mapping is live on the site today. In production
+the same moments graduate to named automotive events — custom big-data
+tables joined on the contact key, fed by the web SDK, the mobile SDK, or a
+batch from the DMS — and segments mix them freely with web behaviour and
+the remote DMS tables from section 4.
+
+| Business moment | Live in this demo today | Production event definition | Fed by |
+|---|---|---|---|
+| Model page viewed | `page_view_events` (page_type=product, product_id, price) | `vehicle_page_views` + trim, fuel_type | Web SDK |
+| Model searched / filtered | `ec:search` | same, plus filter payload | Web SDK |
+| Car saved | `wishlist_events` | `saved_vehicles` | Web SDK |
+| Test drive requested | `ec:addToCart` (model as line) | `test_drive_requests`: model_id, trim, branch_id, preferred_slot, source | Web SDK / API |
+| Booking form opened | `ec:beginCheckout` | funnel step on the same table | Web SDK |
+| Test drive booked | `ec:order`, order id `DPS-hyundaiksa-td-*` | `test_drive_bookings`: booking_id, model_id, branch_id, slot | Web SDK / API |
+| Test drive completed or no-show | — (post-visit) | `test_drive_outcomes`: booking_id, outcome, advisor | CRM/DMS batch |
+| Quote or finance requested | contact created (DPS- key) | `finance_applications`: model_id, amount, status | API |
+| Service booked | service form submit (contact story) | `service_bookings`: vin, branch_id, service_type, slot | Web SDK / API |
+| Service visit completed | `hy_service_history` remote table, live | `service_visits` batch | DMS |
+| Warranty position | `hy_customer_vehicle.warranty_end`, live | same remote read | DMS |
+| Delivery scheduled / handed over | — | `vehicle_deliveries`: vin, branch_id, dates | DMS / API |
+| Showroom visited | branch geocoords ready in `hy_branch` | geofence enter/exit events | Mobile SDK |
+| Recall opened / closed | — | `vehicle_recalls`: vin, campaign_no, status | DMS batch |
+| NPS submitted | survey campaign writes tags, live | `nps_responses`: score, visit_id | Web/Mobile SDK |
+
+The left two columns are what Monday shows working; the right two are the
+definition conversation with the CRM team, using their own vocabulary.
+
+## 8. Channel coverage in one view
+
+| Channel | State in this demo |
+|---|---|
+| On-site messages | Live: popups, bars, slide-ins, exit-intent and scroll gestures, A/B, gamified, story |
+| Inline on-page | Live: five placement zones across home and model pages |
+| App inbox | Live: bell drawer on every page, welcome + National Day copy ready |
+| Web push | Live: prompt, origin service worker `/dengage-webpush-sw.js`, booking + rescue + service copy |
+| SMS | Copy ready (section 5), CST-conscious with STOP opt-out; sender id needed to send |
+| WhatsApp | Copy ready incl. reschedule, delivery day, service confirmation; WABA needed to send |
+| Email | Subject and preheader pairs ready; journey nodes shown in the flow canvas |
+| Geofence | Branch coordinates seeded (section 4); fires via the mobile SDK narrative |
+| RCS | Not offered — say so if asked |
