@@ -32,11 +32,13 @@ Pages. Web push needs the published origin; everything else works locally.
 Add `?debug=1` to any page URL for a live readout of every event the page
 sends to Dengage, with its payload and destination table.
 
-## One-time setup
+## Publishing
 
-GitHub Pages must be enabled for this repository: Settings, Pages, Source set
-to "GitHub Actions". The workflow in `.github/workflows/pages.yml` publishes
-the branch and confirms the live site serves the deployed commit.
+GitHub Pages publishes the `main` branch directly: Settings, Pages, Source is
+"Deploy from a branch" with `main` and the root folder selected. Every push to
+`main` goes live by itself. The workflow in `.github/workflows/pages.yml` is a
+manual-dispatch fallback that only applies if the source is ever switched back
+to "GitHub Actions".
 
 ## Notes
 
