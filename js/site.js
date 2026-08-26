@@ -261,7 +261,284 @@
             dots.forEach(function (d, i) {
                 d.addEventListener('click', function () { show(i); auto(); });
             });
+            /* The arrows and the swipe gesture below both drive the same
+               show()/auto() pair, so the crossfade stays the single source
+               of slide state. */
+            root.__dpsCarousel = {
+                next: function () { show(at + 1); auto(); },
+                prev: function () { show(at - 1); auto(); }
+            };
+            var swipe = null;
+            root.addEventListener('pointerdown', function (e) { swipe = e.clientX; });
+            root.addEventListener('pointerup', function (e) {
+                if (swipe === null) return;
+                var dx = e.clientX - swipe;
+                swipe = null;
+                if (Math.abs(dx) < 40) return;
+                var rtl = document.documentElement.dir === 'rtl';
+                var forward = rtl ? dx > 0 : dx < 0;
+                if (forward) { show(at + 1); } else { show(at - 1); }
+                auto();
+            });
             show(0); auto();
+        });
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* The rest of the scripted site furniture. The live property drives
+       its card rails with GSAP Draggable, its dropdowns with react-select
+       and its showroom pane with Google Maps; none of that script survives
+       a static capture, so the same affordances are rebuilt here.          */
+
+    function wireDragRails() {
+        $$('.feacted_model_list').forEach(function (rail) {
+            var box = rail.parentElement;
+            if (!box || box.__dpsRail) return;
+            box.__dpsRail = true;
+            box.classList.add('dps-rail');
+            box.style.overflowX = 'auto';
+            var drag = null;
+            box.addEventListener('pointerdown', function (e) {
+                drag = { x: e.clientX, left: box.scrollLeft, moved: 0 };
+            });
+            window.addEventListener('pointermove', function (e) {
+                if (!drag) return;
+                var dx = e.clientX - drag.x;
+                drag.moved = Math.max(drag.moved, Math.abs(dx));
+                if (drag.moved > 4) box.scrollLeft = drag.left - dx;
+            });
+            window.addEventListener('pointerup', function () {
+                if (drag && drag.moved > 6) box.__dpsSquelch = Date.now();
+                drag = null;
+            });
+            /* A drag must not fire the card click it ends on. */
+            box.addEventListener('click', function (e) {
+                if (box.__dpsSquelch && Date.now() - box.__dpsSquelch < 250) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+            }, true);
+            /* The section's dots become coarse scroll positions. */
+            var sec = box.closest('section') || box.parentElement;
+            var pag = sec && sec.querySelector('[class*="pagination"]');
+            if (pag) {
+                var dots = $$(':scope > *', pag);
+                dots.forEach(function (d, i) {
+                    d.style.cursor = 'pointer';
+                    d.addEventListener('click', function () {
+                        var max = box.scrollWidth - box.clientWidth;
+                        box.scrollTo({ left: max * (dots.length > 1 ? i / (dots.length - 1) : 0), behavior: 'smooth' });
+                    });
+                });
+            }
+        });
+    }
+
+    function wireArrows() {
+        $$('button[aria-label="Previous slide"], button[aria-label="Next slide"]').forEach(function (btn) {
+            if (btn.__dpsArrow) return;
+            btn.__dpsArrow = true;
+            var forward = btn.getAttribute('aria-label') === 'Next slide';
+            btn.addEventListener('click', function (e) {
+                e.preventDefault();
+                var node = btn.parentElement;
+                while (node && node !== document.body) {
+                    var sw = node.querySelector && node.querySelector('.swiper');
+                    if (sw && sw.__dpsCarousel) {
+                        if (forward) { sw.__dpsCarousel.next(); } else { sw.__dpsCarousel.prev(); }
+                        return;
+                    }
+                    var rail = node.querySelector && node.querySelector('.dps-rail');
+                    if (rail && rail.scrollWidth > rail.clientWidth + 8) {
+                        var rtl = document.documentElement.dir === 'rtl';
+                        var step = Math.max(280, Math.round(rail.clientWidth * 0.7));
+                        rail.scrollBy({ left: step * (forward ? 1 : -1) * (rtl ? -1 : 1), behavior: 'smooth' });
+                        return;
+                    }
+                    node = node.parentElement;
+                }
+            });
+        });
+    }
+
+    /* react-select renders its menu only while open, so a capture holds an
+       empty shell. Each shell gets a plain menu whose options come from the
+       page itself where possible (the branch names on it), and from the
+       catalogue and the region the site serves otherwise. */
+    function selectOptionsFor(label, ar, branches) {
+        var l = label.toLowerCase();
+        if (/branch|dealer|فرع/.test(l)) return branches;
+        if (/service type|نوع الخدمة/.test(l)) {
+            return ar ? ['صيانة دورية', 'إصلاح وتشخيص', 'هيكل ودهان']
+                      : ['Periodic Maintenance', 'Repair & Diagnostics', 'Body & Paint'];
+        }
+        if (/type|النوع/.test(l)) {
+            return ar ? ['معرض', 'مركز خدمة', 'قطع غيار']
+                      : ['Showroom', 'Service Center', 'Spare Parts'];
+        }
+        if (/city|مدينة/.test(l)) {
+            return ar ? ['جدة', 'مكة المكرمة', 'المدينة المنورة', 'الطائف', 'تبوك', 'ينبع']
+                      : ['Jeddah', 'Makkah', 'Madinah', 'Taif', 'Tabuk', 'Yanbu'];
+        }
+        if (/vehicle|model|سيارة|مركبة|موديل|طراز/.test(l)) {
+            return window.Catalog ? window.Catalog.all().map(function (c) { return c.name; }) : null;
+        }
+        if (/year|سنة/.test(l)) return ['2026', '2025', '2024', '2023', '2022', '2021', '2020'];
+        if (/gender|الجنس/.test(l)) return ar ? ['ذكر', 'أنثى'] : ['Male', 'Female'];
+        if (/inquiry|استفسار/.test(l)) {
+            return ar ? ['استفسار مبيعات', 'استفسار صيانة', 'شكوى', 'أخرى']
+                      : ['Sales inquiry', 'Service inquiry', 'Complaint', 'Other'];
+        }
+        if (/mileage|المسافة/.test(l)) {
+            return ar ? ['أقل من 10,000 كم', '10,000–50,000 كم', '50,000–100,000 كم', 'أكثر من 100,000 كم']
+                      : ['Under 10,000 km', '10,000–50,000 km', '50,000–100,000 km', 'Over 100,000 km'];
+        }
+        return null;
+    }
+
+    function pageBranches(ar) {
+        var found = [];
+        $$('.showroom_header_text').forEach(function (h) {
+            var name = h.textContent.trim();
+            if (name && found.indexOf(name) === -1) found.push(name);
+        });
+        if (found.length) return found;
+        return ar ? ['معرض طريق الحرمين', 'معرض أوتو مول', 'معرض طريق الملك عبدالله', 'معرض طريق المدينة', 'معرض أبحر']
+                  : ['Al-Haramain Road Showroom', 'Auto Mall Showroom', 'King Abdullah Road Showroom', 'Madinah Road Showroom', 'Obhur Showroom'];
+    }
+
+    function setMapName(name) {
+        $$('.dps-map-name').forEach(function (el) { el.textContent = name; });
+    }
+
+    function wireSelects() {
+        var ar = langCode() === 'ar';
+        var branches = pageBranches(ar);
+        $$('.input_group_select').forEach(function (sel) {
+            if (sel.__dpsSel) return;
+            sel.__dpsSel = true;
+            var group = sel.closest('.input_group') || sel.parentElement;
+            var labelEl = group && group.querySelector('.input_group_label');
+            var label = labelEl ? labelEl.textContent.trim() : '';
+            var opts = selectOptionsFor(label, ar, branches);
+            if (!opts || !opts.length) return;
+            var menu = document.createElement('div');
+            menu.className = 'dps-select-menu';
+            menu.hidden = true;
+            opts.forEach(function (o) {
+                var b = document.createElement('button');
+                b.type = 'button';
+                b.className = 'dps-select-opt';
+                b.textContent = o;
+                b.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    var face = sel.querySelector('[class*="placeholder"]') ||
+                               sel.querySelector('[class*="singleValue"]');
+                    if (face) face.textContent = o;
+                    sel.setAttribute('data-dps-value', o);
+                    menu.hidden = true;
+                    if (/branch|فرع/i.test(label)) {
+                        var card = $$('.showroom_header_text').filter(function (h) {
+                            return h.textContent.trim() === o;
+                        })[0];
+                        if (card) card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        setMapName(o);
+                    }
+                });
+                menu.appendChild(b);
+            });
+            sel.style.position = 'relative';
+            sel.appendChild(menu);
+            sel.addEventListener('click', function (e) {
+                e.stopPropagation();
+                var willOpen = menu.hidden;
+                $$('.dps-select-menu').forEach(function (m) { m.hidden = true; });
+                menu.hidden = !willOpen;
+            });
+        });
+        document.addEventListener('click', function () {
+            $$('.dps-select-menu').forEach(function (m) { m.hidden = true; });
+        });
+    }
+
+    /* Two-button choice rows (preferred call time and friends): the first
+       option ships styled active; clicking makes the choice real. */
+    function wireChoiceChips() {
+        $$('.input_group').forEach(function (group) {
+            if (group.__dpsChips || group.querySelector('.input_group_select')) return;
+            var chips = $$(':scope > div > button, :scope > button', group).filter(function (b) {
+                return b.type !== 'submit' && b.textContent.trim().length > 2;
+            });
+            if (chips.length < 2) return;
+            group.__dpsChips = true;
+            chips.forEach(function (chip) {
+                chip.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    chips.forEach(function (c) {
+                        var on = c === chip;
+                        c.style.background = on ? '#002c5f' : '#ffffff';
+                        c.style.color = on ? '#ffffff' : '#0e1215';
+                        c.style.borderColor = on ? '#002c5f' : '#ebebeb';
+                    });
+                });
+            });
+        });
+    }
+
+    /* The showroom pane hosts a Google Map on the live property. A quiet
+       map-styled card holds the ground here, and Get Directions opens the
+       real map in a new tab, which is what the control promises. */
+    function wireShowroomMap() {
+        $$('.showroom_map').forEach(function (map) {
+            if (map.__dpsMap) return;
+            map.__dpsMap = true;
+            map.style.position = 'relative';
+            var ph = document.createElement('div');
+            ph.className = 'dps-map';
+            ph.innerHTML =
+                '<svg viewBox="0 0 24 24" class="dps-map-pin" aria-hidden="true">' +
+                '<path fill="#002c5f" d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6a2.5 2.5 0 0 1 0 5.5z"/></svg>' +
+                '<span class="dps-map-name"></span>';
+            map.appendChild(ph);
+            var first = $('.showroom_header_text');
+            if (first) setMapName(first.textContent.trim());
+        });
+
+        document.addEventListener('click', function (event) {
+            var btn = event.target.closest ? event.target.closest('button, a') : null;
+            if (!btn) return;
+            if (!/get directions|الاتجاهات/i.test(btn.textContent)) return;
+            event.preventDefault();
+            var node = btn, header = null;
+            while (node && node !== document.body && !header) {
+                header = node.querySelector ? node.querySelector('.showroom_header_text') : null;
+                node = node.parentElement;
+            }
+            var name = header ? header.textContent.trim() : 'Mohamed Yousuf Naghi Motors Hyundai';
+            setMapName(name);
+            window.open('https://www.google.com/maps/search/?api=1&query=' +
+                encodeURIComponent(name + ' Hyundai Jeddah'), '_blank', 'noopener');
+        });
+
+        /* The branch cards collapse their detail on the live site; a header
+           click opens whichever collapsed block the card is hiding. */
+        document.addEventListener('click', function (event) {
+            var head = event.target.closest ? event.target.closest('.showroom_header_text') : null;
+            if (!head) return;
+            var card = head.parentElement;
+            for (var k = 0; k < 3 && card && card.parentElement; k++) {
+                var folded = $$('*', card).filter(function (el) {
+                    return el.scrollHeight - el.clientHeight > 24 && el.clientHeight < 12;
+                })[0];
+                if (folded) {
+                    var open = folded.getAttribute('data-dps-open') === '1';
+                    folded.style.height = open ? '0px' : folded.scrollHeight + 'px';
+                    folded.style.transition = 'height .25s ease';
+                    folded.setAttribute('data-dps-open', open ? '0' : '1');
+                    return;
+                }
+                card = card.parentElement;
+            }
         });
     }
 
@@ -649,6 +926,11 @@
         dressModelCards();
         wireFunnelButtons();
         wireCarousels();
+        wireDragRails();
+        wireArrows();
+        wireSelects();
+        wireChoiceChips();
+        wireShowroomMap();
         wireAccordions();
         wireTabs();
         wireCountdowns();

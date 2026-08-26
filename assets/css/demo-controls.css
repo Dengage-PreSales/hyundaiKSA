@@ -202,6 +202,64 @@ html.dps-locked { overflow: hidden; }
 .scenario.gesture .slug, .scenario.elsewhere .slug { font-family: var(--dps-font); }
 .scenario.action { border-inline-start: 3px solid var(--hy-red); }
 
+/* ---- rebuilt site furniture (selects, rails, showroom map) --------------- */
+
+.dps-rail { scrollbar-width: none; cursor: grab; }
+.dps-rail::-webkit-scrollbar { display: none; }
+.dps-rail:active { cursor: grabbing; }
+
+.dps-select-menu {
+  position: absolute;
+  inset-inline-start: 0;
+  inset-inline-end: 0;
+  top: calc(100% + 4px);
+  background: #ffffff;
+  border: 1px solid var(--hy-line);
+  border-radius: 4px;
+  box-shadow: 0 14px 34px rgba(0, 0, 0, .14);
+  z-index: 60;
+  max-height: 280px;
+  overflow-y: auto;
+}
+.dps-select-opt {
+  display: block;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  text-align: start;
+  padding: 11px 14px;
+  font-size: 14px;
+  color: #14181b;
+  cursor: pointer;
+}
+.dps-select-opt:hover { background: var(--hy-tint); color: var(--hy-blue); }
+
+.dps-map {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, .55) 1px, transparent 1px) 0 0 / 56px 56px,
+    linear-gradient(0deg, rgba(255, 255, 255, .55) 1px, transparent 1px) 0 0 / 56px 56px,
+    #e3e7ea;
+}
+.dps-map-pin { width: 46px; height: 46px; filter: drop-shadow(0 6px 10px rgba(0, 0, 0, .25)); }
+.dps-map-name {
+  background: #ffffff;
+  border: 1px solid var(--hy-line);
+  border-radius: 4px;
+  padding: 8px 14px;
+  font-family: var(--dps-font-medium);
+  font-size: 13px;
+  color: var(--hy-navy);
+  max-width: 82%;
+  text-align: center;
+}
+
 /* ---- site map drawer (behind the header burger) -------------------------- */
 
 #site-menu .dps-menu-group { margin: 0 0 16px; }
