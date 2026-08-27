@@ -800,6 +800,72 @@ def offers_grid(rel: str, lang: str, langdir: str) -> str:
             f'<div class="dps-band-grid">{after}</div></section>')
 
 
+def _div_end(html: str, start: int) -> int:
+    """Index just past the </div> matching the <div at start, or -1."""
+    depth = 0
+    for m in re.finditer(r"</?div\b", html[start:]):
+        depth += 1 if m.group(0) == "<div" else -1
+        if depth == 0:
+            gt = html.find(">", start + m.end())
+            return (gt + 1) if gt != -1 else start + m.end()
+    return -1
+
+
+# The back-to-school campaign's featured models: id, monthly instalment in
+# SAR. The VANTA figure is the one the capture displayed; the rest scale from
+# the list prices at the same rate. All openly fictional, like every price
+# on the site.
+CAMPAIGN_MODELS = [
+    ("vanta", "1,169"), ("terra", "999"), ("terra-max", "1,179"),
+    ("ridge", "1,599"), ("serene", "1,249"), ("nova", "929"),
+]
+
+
+def campaign_models_band(rel: str, lang: str, langdir: str) -> str:
+    ar = lang == "ar"
+    def T(en, arb):
+        return arb if ar else en
+    names = {"vanta": ("VANTA", "فانتا"), "terra": ("TERRA", "تيرا"),
+             "terra-max": ("TERRA MAX", "تيرا ماكس"), "ridge": ("RIDGE", "ريدج"),
+             "serene": ("SERENE", "سيرين"), "nova": ("NOVA", "نوفا")}
+    cards = "".join(
+        f'<article class="dps-offer-card">'
+        f'<img src="{rel}assets/photo/{ART[mid]}" alt="" loading="lazy">'
+        f'<div class="dps-care-body"><span class="dps-kicker">{T("From", "ابتداءً من")} '
+        f'{T("SAR", "ر.س")} {monthly} {T("/ month", "/ شهرياً")}</span>'
+        f'<h3>{names[mid][1] if ar else names[mid][0]}</h3>'
+        f'<p>{T("Drive now, pay after 3 months.", "قد الآن وادفع بعد 3 أشهر.")}</p>'
+        f'<div style="display:flex;gap:10px;flex-wrap:wrap">'
+        f'<button type="button" class="dps-care-cta" data-book-test-drive="{mid}" '
+        f'style="border:0;cursor:pointer">{T("Book a Test Drive", "احجز تجربة قيادة")}</button>'
+        f'<a class="dps-care-cta" style="background:#fff;color:#002c5f !important;'
+        f'border:1px solid #002c5f" href="{rel}{langdir}models/{mid}/index.html">'
+        f'{T("Offer Details", "تفاصيل العرض")}</a></div></div></article>'
+        for mid, monthly in CAMPAIGN_MODELS)
+    return (f'<section class="dps-band" id="campaign-models" dir="{"rtl" if ar else "ltr"}">'
+            f'<div class="dps-band-head"><h2>{T("The Back-to-School line-up", "تشكيلة العودة للمدارس")}</h2>'
+            f'<p>{T("Six family favourites on the campaign instalments below. Drive now, pay after 3 months — terms and conditions apply.", "ستة طرازات عائلية بأقساط الحملة أدناه. قد الآن وادفع بعد 3 أشهر — تطبق الشروط والأحكام.")}</p></div>'
+            f'<div class="dps-band-grid">{cards}</div></section>')
+
+
+def fix_campaign_widget(t: str, rel: str, lang: str, langdir: str) -> str:
+    """The campaign page's per-model offer carousel is mounted slide by slide
+    with script on the live property; a static capture keeps one title, a
+    stack of off-canvas images and eleven dots — a hollow widget. The whole
+    container is replaced by an authored, working campaign-models band whose
+    cards open the real test-drive funnel."""
+    at = t.find("offers-list-wrapper")
+    if at == -1:
+        return t
+    start = t.rfind('<div class="lg:px-spacing-x-desktop', 0, at)
+    if start == -1:
+        return t
+    end = _div_end(t, start)
+    if end == -1:
+        return t
+    return t[:start] + campaign_models_band(rel, lang, langdir) + t[end:]
+
+
 def rewrite_links(t: str, rel: str) -> str:
     """Every link resolves inside the demo. Captured-property hrefs — relative
     or absolute — map to the built page with the same intent; there is no
@@ -1060,6 +1126,8 @@ def build(name: str, spec: dict) -> str:
         body = re.sub(r"(<footer)", aftercare_band(rel, lang, langdir).replace("\\", "\\\\") + r"\n\1", body, count=1)
     if name.startswith("offers."):
         body = re.sub(r"(<footer)", offers_grid(rel, lang, langdir).replace("\\", "\\\\") + r"\n\1", body, count=1)
+    if name.startswith("campaign."):
+        body = fix_campaign_widget(body, rel, lang, langdir)
 
     # The header needs the class js/slots.js measures.
     body = re.sub(r"<header\b([^>]*)class=\"", r'<header\1class="site-header ', body, count=1)
