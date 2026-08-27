@@ -989,6 +989,106 @@
         });
     }
 
+    /* The scroll-story widgets (Additional Design, the hybrid-features
+       stepper) keep N absolutely-positioned steps stacked in one slot and
+       reveal them by scroll progress or slide script. Frozen, every layer
+       prints at once. Turn each such section into a working stepper: one
+       step visible, the section's own dots and arrows driving all of its
+       stacks in lockstep. */
+    function wireStackedSteps() {
+        var scopes = $$('main [data-model-section], main > section, main .model-section-shell');
+        scopes.forEach(function (sec) {
+            if (sec.__dpsStack || sec.closest('.swiper')) return;
+            var groups = [];
+            $$('*', sec).forEach(function (box) {
+                if (box.closest('.swiper') || box.__dpsStackBox) return;
+                var all = $$(':scope > *', box).filter(function (k) {
+                    var cs = getComputedStyle(k);
+                    return k.offsetHeight > 60 && k.offsetWidth > 150 && cs.display !== 'none';
+                });
+                var absolutes = all.filter(function (k) {
+                    return getComputedStyle(k).position === 'absolute';
+                });
+                if (absolutes.length < 2) return;
+                /* The slot is where the absolutes sit; the group is every
+                   sibling occupying it, including the one in-flow base card. */
+                var t0 = absolutes[0].getBoundingClientRect();
+                var same = all.filter(function (k) {
+                    var r = k.getBoundingClientRect();
+                    return Math.abs(r.top - t0.top) < 80 && Math.abs(r.left - t0.left) < 80;
+                });
+                if (same.length < 2) return;
+                box.__dpsStackBox = true;
+                groups.push(same);
+            });
+            if (!groups.length) return;
+            sec.__dpsStack = true;
+            var steps = Math.max.apply(null, groups.map(function (g) { return g.length; }));
+            var dots = $$('[class*="pagination"] > *', sec);
+            var at = 0;
+            function show(i) {
+                at = ((i % steps) + steps) % steps;
+                groups.forEach(function (g) {
+                    g.forEach(function (k, j) {
+                        var on = (j % g.length) === (at % g.length);
+                        k.style.transition = 'opacity .4s ease';
+                        k.style.opacity = on ? '1' : '0';
+                        k.style.visibility = on ? 'visible' : 'hidden';
+                        k.style.zIndex = on ? '2' : '1';
+                        k.style.pointerEvents = on ? 'auto' : 'none';
+                    });
+                });
+                dots.forEach(function (d, j) {
+                    d.style.opacity = j === at ? '1' : '.45';
+                });
+            }
+            dots.forEach(function (d, j) {
+                d.style.cursor = 'pointer';
+                d.setAttribute('data-dps-wired', '1');
+                d.addEventListener('click', function () { show(j); });
+            });
+            $$('button', sec).forEach(function (b) {
+                var al = b.getAttribute('aria-label') || '';
+                var prev = /Previous slide|الشريحة السابقة/.test(al);
+                var next = /Next slide|الشريحة التالية/.test(al);
+                if (!prev && !next) return;
+                b.__dpsArrow = true;
+                b.setAttribute('data-dps-wired', '1');
+                b.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    show(at + (next ? 1 : -1));
+                });
+            });
+            show(0);
+        });
+    }
+
+    /* The capture freezes every GSAP scroll-pin mid-flight: a .pin-spacer
+       holding the scripted scroll length (thousands of pixels) around a
+       much shorter, absolutely-positioned section. With no script to drive
+       the pin, the difference is dead page. Collapse every spacer to its
+       content and put the pinned child back into normal flow. */
+    function unpinSpacers() {
+        $$('.pin-spacer').forEach(function (sp) {
+            sp.style.height = 'auto';
+            sp.style.minHeight = '0';
+            sp.style.padding = '0';
+            var parent = sp.parentElement;
+            if (parent && /\dpx/.test(parent.getAttribute('style') || '')) {
+                parent.style.height = 'auto';
+                parent.style.minHeight = '0';
+            }
+            $$(':scope > *', sp).forEach(function (child) {
+                var cs = getComputedStyle(child);
+                if (cs.position === 'absolute' || cs.position === 'fixed') {
+                    child.style.position = 'relative';
+                    child.style.inset = 'auto';
+                }
+                child.style.transform = 'none';
+            });
+        });
+    }
+
     /* The contact page pairs its form with a scripted, scroll-pinned header
        column; a static capture freezes the pin spacer at its full scripted
        height, leaving a tall blank column beside the form. Unpin it and give
@@ -1296,6 +1396,7 @@
             document.body.getAttribute('data-page-type') || 'other', pageviewDetail());
 
         hideBrokenImages();
+        unpinSpacers();
 
         answerThemeRequests();
         wireOverlays();
@@ -1307,6 +1408,7 @@
         wireCarousels();
         wireDragRails();
         wireModelTabs();
+        wireStackedSteps();
         wireArrows();
         wireSelects();
         wireChoiceChips();

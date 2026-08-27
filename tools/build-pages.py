@@ -393,6 +393,15 @@ TEXT_ATTRS = r"(alt|aria-label|aria-description|placeholder|title|content|models
 
 
 def _apply_words(text: str) -> str:
+    # Normalise the whitespace a name can hide behind: non-breaking spaces,
+    # and the doubled spaces the line-merge can produce. HTML collapses
+    # space runs when rendering, so this changes nothing visually.
+    if " " in text:
+        text = text.replace(" ", " ")
+    if "&nbsp;" in text:
+        text = text.replace("&nbsp;", " ")
+    while "  " in text:
+        text = text.replace("  ", " ")
     for old, new in REBRAND:
         if old in text:
             text = text.replace(old, new)
@@ -489,6 +498,45 @@ def settle_inline_styles(t: str) -> str:
             return 'style="' + style + '"'
         return re.sub(r'style="([^"]*)"', styles, tag)
     return re.sub(r"<[a-zA-Z][^>]*>", fix, t)
+
+
+def collapse_split_chars(t: str) -> str:
+    """The scroll animations split headlines into one div per CHARACTER, so
+    a model name can hide from every string-level pass, one letter at a
+    time. Collapse the per-char cells to plain text and unwrap the word
+    shells, so the later rebrand pass sees the assembled words; also drop
+    the frozen 105%-translate the split lines were captured with, which
+    otherwise shoves the reassembled headline out of its clip box."""
+    t = re.sub(r'<div class="char"[^>]*>([^<]{1,2})</div>', r"\1", t)
+    t = re.sub(r'<div style="position: relative; display: inline-block;">([^<]*)</div>', r"\1", t)
+    # The same animation also splits copy into one masked div per LINE, so a
+    # name can straddle a line break ("SANTA " / "FE ..."). Merge consecutive
+    # masked lines into one flow, and let the merged text wrap.
+    t = re.sub(r'</div>\s*</div>\s*<div class="line-mask"[^>]*>\s*<div class="line"[^>]*>', " ", t)
+    def unshift(m):
+        s2 = re.sub(r"transform: translate\(0(?:px|%), 105%\);?", "", m.group(0))
+        return s2.replace("white-space: nowrap", "white-space: normal")
+    t = re.sub(r'<div class="line" style="[^"]*"', unshift, t)
+    return t
+
+
+def fill_design_stage(t: str, rel: str, slug: str) -> str:
+    """Two scroll-bound film stages ship empty in a capture: the Design
+    section's stage and the Performance section's dark backdrop. Each gets a
+    photograph — the model's own signature shot for Design, the night motion
+    frame for Performance."""
+    art = ART.get(slug)
+    if not art:
+        return t
+    t = re.sub(r'(<div class="model-design-video[^"]*"[^>]*>)',
+               r"\1" + f'<img src="{rel}assets/photo/{art}" alt="" '
+               'style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;">',
+               t, count=1)
+    t = re.sub(r'(<div class="video_container[^"]*"[^>]*>)',
+               r"\1" + f'<img src="{rel}{photo("hero-night-motion")}" alt="" '
+               'style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.85;">',
+               t, count=1)
+    return t
 
 
 def strip_lazy_reservations(t: str) -> str:
@@ -1104,6 +1152,7 @@ def build(name: str, spec: dict) -> str:
         body_attrs, body = body_m.group(1), body_m.group(2)
         video_thumbs, hero_list = ld_media(src)
     body = strip_scripts(body)
+    body = collapse_split_chars(body)
     body = settle_inline_styles(body)
     body = strip_lazy_reservations(body)
     body = replace_videos(body, video_thumbs)
@@ -1111,6 +1160,7 @@ def build(name: str, spec: dict) -> str:
     body = rewrite_assets(body, rel, spec)
     if spec.get("product"):
         body = force_hero_scene(body, rel, spec["product"])
+        body = fill_design_stage(body, rel, spec["product"])
     if spec["type"] == "home":
         body = force_home_heroes(body)
         body = inject_home_anchors(body)
