@@ -1,23 +1,35 @@
-# Hyundai KSA x Dengage demo
+# D·Auto x Dengage demo
 
-A working, bilingual demonstration site themed on publicly available Hyundai
-Saudi Arabia content, with the Dengage customer experience data platform
-layered in.
+A working, bilingual demonstration site for **D·Auto**, a fictitious
+automotive brand, with the Dengage customer experience data platform layered
+in. Every model name, price, showroom, phone number and image on the site is
+invented or generated for this demonstration; the brand exists only here, so
+the same demo can be shown to any automotive prospect. It is not affiliated
+with, and does not represent, any real car maker or distributor.
 
-Live site, once GitHub Pages is enabled for this repository:
+Live site:
 
 ```
 https://dengage-presales.github.io/hyundaiKSA/
 ```
 
+(The repository name predates the fictitious brand; renaming the repository —
+for example to `d-auto-demo` — changes the URL and nothing else.)
+
 ## What is in this repository
 
 | Path | What it is |
 |---|---|
-| `index.html`, `en/`, `ar/` | The demo site: root gateway plus the Mynaghi journeys in English and Arabic |
-| `js/`, `assets/` | The site code, the Dengage engagement layer, fonts, imagery |
+| `index.html`, `models/`, `offers/`, `service-booking/`, `contact-us/` | The English site at the root |
+| `ar/` | The full Arabic (RTL) mirror |
+| `js/`, `assets/` | The site code, the Dengage engagement layer, the D·Auto brand asset system |
 | `panel/` | Dengage panel content for the demo campaigns, with channel copy |
 | `supabase/` | SQL for the synthetic vehicle dataset used in the remote-data demonstration |
+| `docs/` | Presales research and the demo runbook |
+
+Typography is Outfit and Cairo from Google Fonts; all vehicle imagery is the
+committed SVG brand-scene system under `assets/brand/`. Nothing on the site
+is loaded from, or points at, any car maker's property.
 
 ## Run it locally
 
@@ -38,19 +50,12 @@ GitHub Pages publishes the `main` branch directly: Settings, Pages, Source is
 "Deploy from a branch" with `main` and the root folder selected. Every push to
 `main` goes live by itself. The workflow in `.github/workflows/pages.yml` is a
 manual-dispatch fallback that only applies if the source is ever switched back
-to "GitHub Actions".
+to GitHub Actions.
 
-## Notes
+## What the forms do
 
-- This is a Dengage product demonstration using publicly available content.
-  It is not affiliated with or endorsed by Hyundai.
-- No form on this site sends data to any backend. Form submissions only mint
-  a demo contact key and fire Dengage demo events.
-- No credentials live in this repository. The Dengage account and application
-  identifiers in the pages are public by design: they ship in the HTML of
-  every site that uses the SDK.
-- The vehicle dataset under `supabase/` is entirely synthetic and announces
-  itself as such (DEMO VINs, a fictional 555 mobile block, demo contact keys).
-- Hyundai's own web fonts are committed for visual fidelity. Deleting
-  `assets/fonts/*.otf` falls the site back to the metric-matched Arial stack
-  that Hyundai's own CSS declares, with no layout shift.
+There is no backend. Submitting any form on the site does exactly one thing:
+it identifies the visitor as a demo contact (a `DPS-` key) in the shared
+Dengage presales application and fires the corresponding demo events. No form
+data goes anywhere else. The SDK identifiers in the pages are public-by-design
+values, not credentials.

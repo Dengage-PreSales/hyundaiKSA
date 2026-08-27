@@ -1,4 +1,4 @@
--- The synthetic Hyundai DMS tables for the remote-data showcase.
+-- The synthetic D·Auto DMS tables for the remote-data showcase.
 --
 -- Create-only, namespaced hy_*, following the same pattern the rh_* tables
 -- set for a previous pitch in this database. Nothing existing is touched.
@@ -10,7 +10,7 @@
 --   hy_customer_vehicle  the DMS ownership record: who owns what, warranty
 --                        and service dates. Remote segments are built on it
 --                        ("warranty expires inside 60 days", "service overdue",
---                        "Tucson owners in Jeddah", "high lifetime value").
+--                        "Vanta owners in Jeddah", "high lifetime value").
 --   hy_service_history   workshop visits, for the after-sales story.
 --   hy_branch            branches with coordinates, for the geofence scene.
 
@@ -34,7 +34,7 @@ create table public.hy_customer_vehicle (
     created_at          timestamptz not null default now()
 );
 comment on table public.hy_customer_vehicle is
-    'Synthetic DMS ownership records for the Hyundai KSA demo. Every value is invented: DEMO- VINs, 555-block mobiles, DPS- contact keys. Joined to Dengage contacts on contact_key.';
+    'Synthetic DMS ownership records for the D·Auto KSA demo. Every value is invented: DEMO- VINs, 555-block mobiles, DPS- contact keys. Joined to Dengage contacts on contact_key.';
 create index hy_customer_vehicle_contact_key on public.hy_customer_vehicle (contact_key);
 create index hy_customer_vehicle_warranty on public.hy_customer_vehicle (warranty_end);
 create index hy_customer_vehicle_next_due on public.hy_customer_vehicle (next_service_due);
@@ -42,7 +42,7 @@ alter table public.hy_customer_vehicle enable row level security;
 
 create table public.hy_service_history (
     id              bigint generated always as identity primary key,
-    vin             text not null references public.hy_customer_vehicle (vin),
+    vin             text not null references public.hy_customer_vehicle (vin) deferrable,
     contact_key     text not null,
     visit_date      date not null,
     service_center  text,
@@ -52,7 +52,7 @@ create table public.hy_service_history (
     created_at      timestamptz not null default now()
 );
 comment on table public.hy_service_history is
-    'Synthetic workshop visits for the Hyundai KSA demo, keyed to hy_customer_vehicle.';
+    'Synthetic workshop visits for the D·Auto KSA demo, keyed to hy_customer_vehicle.';
 create index hy_service_history_contact_key on public.hy_service_history (contact_key);
 alter table public.hy_service_history enable row level security;
 
@@ -65,5 +65,5 @@ create table public.hy_branch (
     lng          double precision not null
 );
 comment on table public.hy_branch is
-    'Approximate branch locations for the Hyundai KSA demo geofence scene. Coordinates are city-level approximations, not real branch addresses.';
+    'Approximate branch locations for the D·Auto KSA demo geofence scene. Coordinates are city-level approximations, not real branch addresses.';
 alter table public.hy_branch enable row level security;

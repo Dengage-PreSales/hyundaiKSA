@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="140 380 1340 380"><defs>
+<linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+  <stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#fff"/>
+</linearGradient>
+<linearGradient id="road" x1="0" y1="0" x2="0" y2="1">
+  <stop offset="0" stop-color="#10151c"/><stop offset="1" stop-color="#070a0f"/>
+</linearGradient>
+<linearGradient id="body" x1="0" y1="0" x2="0" y2="1">
+  <stop offset="0" stop-color="#22436b"/><stop offset="1" stop-color="#12233a"/>
+</linearGradient>
+<linearGradient id="glass" x1="0" y1="0" x2="0" y2="1">
+  <stop offset="0" stop-color="#c8d6e6"/><stop offset="1" stop-color="#5c718a"/>
+</linearGradient>
+<radialGradient id="glow" cx="0.5" cy="0.42" r="0.75">
+  <stop offset="0" stop-color="#ffffff" stop-opacity="0.16"/><stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+</radialGradient>
+</defs><g>
+<path d="M232 706 L246 610 Q252 566 306 556 L400 540 Q500 452 640 446 L960 446 Q1120 452 1210 540 L1310 560 Q1364 572 1370 618 L1376 706 Q1376 722 1348 722 L260 722 Q232 722 232 706 Z" fill="url(#body)"/>
+<path d="M420 540 Q510 462 640 458 L940 458 Q1080 462 1180 540 L860 540 L860 462 L844 462 L844 540 Z" fill="url(#glass)" opacity="0.92"/>
+<rect x="238" y="640" width="1132" height="16" fill="#ffffff" opacity="0.06"/>
+<path d="M1338 596 L1370 616 L1374 648 L1316 626 Z" fill="#e8edf4" opacity="0.85"/>
+<path d="M248 606 L298 586 L310 614 L256 630 Z" fill="#f3d08a" opacity="0.9"/>
+</g><circle cx="452" cy="700" r="86" fill="#0b0e12"/><circle cx="452" cy="700" r="52" fill="#1d2530"/><circle cx="452" cy="700" r="20" fill="#3a4757"/><circle cx="1170" cy="700" r="86" fill="#0b0e12"/><circle cx="1170" cy="700" r="52" fill="#1d2530"/><circle cx="1170" cy="700" r="20" fill="#3a4757"/></svg>

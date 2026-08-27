@@ -126,8 +126,8 @@
     /* Real trims only where the site displays them; anywhere else the model
        is its own single version, which is a fact rather than a gap. */
     var TRIMS = {
-        'tucson':   ['Smart', 'Comfort', 'Premium', 'N Line'],
-        'santa-fe': ['GL Smart', 'GL Comfort', 'GL Premium', 'Calligraphy']
+        'vanta': ['Smart', 'Comfort', 'Premium', 'R-Spec'],
+        'ridge': ['GL Smart', 'GL Comfort', 'GL Premium', 'Signature']
     };
 
     var tdState = { car: null, trim: null, begun: false };
@@ -174,7 +174,7 @@
     }
 
     function openTestDrive(carId) {
-        var car = window.Catalog.get(carId) || window.Catalog.get('tucson');
+        var car = window.Catalog.get(carId) || window.Catalog.get('vanta');
         if (!car) return;
         var modal = $('#test-drive');
         if (!modal) return;
@@ -523,10 +523,10 @@
                 header = node.querySelector ? node.querySelector('.showroom_header_text') : null;
                 node = node.parentElement;
             }
-            var name = header ? header.textContent.trim() : 'Mohamed Yousuf Naghi Motors Hyundai';
+            var name = header ? header.textContent.trim() : 'D·Auto Motors Jeddah';
             setMapName(name);
             window.open('https://www.google.com/maps/search/?api=1&query=' +
-                encodeURIComponent(name + ' Hyundai Jeddah'), '_blank', 'noopener');
+                encodeURIComponent(name + ' Jeddah'), '_blank', 'noopener');
         });
 
         /* A branch card click focuses that branch: the map card names it and
@@ -550,19 +550,13 @@
        content on the live property in a new tab. Nothing on screen is a
        dead placeholder.                                                   */
 
-    function liveSite(pathname) {
-        window.open('https://hyundaiksa.com' + pathname, '_blank', 'noopener');
-    }
-
+    /* English lives at the site root and Arabic mirrors it under ar/; the
+       build stamps every page with its own language-free path, so the twin
+       is a pure recombination. */
     function twinLanguageUrl() {
-        if (document.body.hasAttribute('data-gateway')) {
-            var pre = sitePrefix();
-            return langCode() === 'ar' ? pre + 'en/index.html' : pre + 'index.html';
-        }
-        var p = location.pathname;
-        if (p.indexOf('/en/') !== -1) return p.replace('/en/', '/ar/');
-        if (p.indexOf('/ar/') !== -1) return p.replace('/ar/', '/en/');
-        return p;
+        var pre = sitePrefix();
+        var path = document.documentElement.getAttribute('data-site-path') || 'index.html';
+        return langCode() === 'ar' ? pre + path : pre + 'ar/' + path;
     }
 
     var lightSet = [], lightAt = 0;
@@ -611,25 +605,13 @@
     }
 
     function wireUniversalCtas() {
-        var lang = langCode();
-        var pre = sitePrefix();
-        var tenant = pre + lang + '/mynaghi/';
+        var tenant = sitePrefix() + langDir();
         var isHome = document.body.getAttribute('data-page-type') === 'home';
 
         /* Language switcher is a button on this build. */
         $$('.lang_switcher').forEach(function (el) {
             if (el.__dps) return; el.__dps = true; if (el.setAttribute) el.setAttribute('data-dps-wired', '1');
             el.addEventListener('click', function () { location.href = twinLanguageUrl(); });
-        });
-
-        /* Login opens the property's real sign-in. */
-        $$('.profile_button').forEach(function (el) {
-            if (el.__dps) return; el.__dps = true; if (el.setAttribute) el.setAttribute('data-dps-wired', '1');
-            el.removeAttribute('data-demo-dead');
-            el.addEventListener('click', function (e) {
-                e.preventDefault();
-                liveSite('/' + lang + '/mynaghi/login');
-            });
         });
 
         /* A hero slide's Explore goes to that slide's own model page. */
@@ -652,7 +634,7 @@
 
         /* The services cards on the home page. */
         if (isHome) {
-            [['Call Center', 'مركز الاتصال', function () { location.href = 'tel:8001240191'; }],
+            [['Call Center', 'مركز الاتصال', function () { location.href = 'tel:8001002000'; }],
              ['After Sales Network', 'شبكة ما بعد البيع', function () { location.href = tenant + 'service-booking/index.html'; }],
              ['Service Booking', 'حجز الصيانة', function () { location.href = tenant + 'service-booking/index.html'; }]
             ].forEach(function (row) {
@@ -703,10 +685,10 @@
             [/^(read more|اقرأ المزيد)$/i, function (b) {
                 var a = nearestHref(b);
                 if (a) { a.click(); return; }
-                liveSite('/' + lang + '/mynaghi');
+                location.href = tenant + 'index.html';
             }],
             [/^(e-brochure|كتيب إلكتروني)$/i, function () {
-                liveSite('/' + lang + '/mynaghi/offers/backtoschool');
+                location.href = tenant + 'offers/back-to-school/index.html';
             }],
             [/^(explore more|أكتشف أكثر|اكتشف أكثر)$/i, function () {
                 var grid = $('#dn_inline_target_in_grid');
@@ -906,15 +888,13 @@
             toast(thanks);
         });
 
-        var pre = sitePrefix();
-        var lang = langCode();
         var inquiryLabels = ['Inquire Now', 'Buy Now', 'Order Now',
                              'اطلبه الآن', 'اشتره الآن', 'اشترِ الآن', 'استفسر الآن'];
         $$('main button').forEach(function (btn) {
             var name = (btn.getAttribute('aria-label') || btn.textContent || '').trim();
             if (inquiryLabels.indexOf(name) === -1) return;
             btn.addEventListener('click', function () {
-                location.href = pre + lang + '/mynaghi/contact-us/index.html';
+                location.href = sitePrefix() + langDir() + 'contact-us/index.html';
             });
         });
     }
@@ -941,9 +921,9 @@
         });
     }
 
-    /* The service-booking page pairs its form with an illustration the live
-       site mounts by script; the left column otherwise sits empty. The
-       page gets the property's own service-booking photograph. */
+    /* The service-booking page pairs its form with an illustration the
+       captured property mounts by script; the left column otherwise sits
+       empty. The page gets a scene from the brand system. */
     function dressServicePage() {
         if (location.pathname.indexOf('service-booking') === -1) return;
         var heads = $$('main h1, main h2').filter(function (h) { return h.textContent.trim().length > 4; });
@@ -952,7 +932,7 @@
         var col = head.parentElement;
         if (!col || col.querySelector('img')) return;
         var img = document.createElement('img');
-        img.src = sitePrefix() + 'assets/img/cdn/cmssection/23079/service-booking.webp';
+        img.src = sitePrefix() + 'assets/brand/scene-suv-4.svg';
         img.alt = '';
         img.style.cssText = 'width:560px;max-width:92%;height:auto;border-radius:8px;margin-top:28px;display:block;';
         col.appendChild(img);
@@ -974,7 +954,7 @@
             if (book) {
                 event.preventDefault();
                 openTestDrive(book.getAttribute('data-book-test-drive') ||
-                    document.body.getAttribute('data-product-id') || 'tucson');
+                    document.body.getAttribute('data-product-id') || 'vanta');
                 return;
             }
             var heart = event.target.closest ? event.target.closest('[data-save-car]') : null;
@@ -997,18 +977,23 @@
         return (document.documentElement.getAttribute('lang') || 'en').indexOf('ar') === 0 ? 'ar' : 'en';
     }
 
+    /* English pages live at the site root, Arabic ones under ar/. */
+    function langDir() {
+        return langCode() === 'ar' ? 'ar/' : '';
+    }
+
+    /* The build stamps every page with its own relative path back to the
+       site root, so no URL guessing survives a host prefix. */
     function sitePrefix() {
-        var m = location.pathname.match(/^(.*?)\/(en|ar)\//);
-        if (m) return m[1] + '/';
+        var stamped = document.documentElement.getAttribute('data-rel-root');
+        if (stamped !== null) return stamped;
         return location.pathname.replace(/[^/]*$/, '');
     }
 
     function buildSiteMenu() {
         if ($('#site-menu') || !window.Catalog) return;
         var ar = langCode() === 'ar';
-        var pre = sitePrefix();
-        var lang = langCode();
-        function page(rest) { return pre + lang + '/mynaghi/' + rest; }
+        function page(rest) { return sitePrefix() + langDir() + rest; }
         var groups = [
             { title: ar ? 'سيدان' : 'Sedan', cat: 'Sedan' },
             { title: ar ? 'الدفع الرباعي' : 'SUV', cat: 'SUV' },
@@ -1028,7 +1013,7 @@
             '<a class="dps-menu-link" href="' + page('offers/back-to-school/index.html') + '">' + (ar ? 'عرض العودة للمدارس' : 'Back to School offer') + '</a>' +
             '<a class="dps-menu-link" href="' + page('service-booking/index.html') + '">' + (ar ? 'حجز الصيانة' : 'Service booking') + '</a>' +
             '<a class="dps-menu-link" href="' + page('contact-us/index.html') + '">' + (ar ? 'اتصل بنا' : 'Contact us') + '</a>' +
-            '<a class="dps-menu-link" href="' + pre + (ar ? 'en' : 'ar') + '/mynaghi/index.html">' + (ar ? 'English' : 'العربية') + '</a>' +
+            '<a class="dps-menu-link" href="' + twinLanguageUrl() + '">' + (ar ? 'English' : 'العربية') + '</a>' +
             '</div>';
         var aside = document.createElement('aside');
         aside.className = 'dps-drawer';
@@ -1048,7 +1033,6 @@
     function dressModelCards() {
         if (!window.Catalog) return;
         var pre = sitePrefix();
-        var lang = langCode();
         $$('.model-card').forEach(function (card) {
             var label = (card.getAttribute('models_name') || '').trim().toLowerCase();
             if (!label) return;
@@ -1056,12 +1040,13 @@
             window.Catalog.all().forEach(function (c) {
                 if (model) return;
                 if (c.nameEn.toLowerCase() === label || c.nameAr.toLowerCase() === label ||
-                    c.id === label) model = c;
+                    c.id === label || label.indexOf(c.nameEn.toLowerCase()) === 0) model = c;
             });
             if (!model) return;
-            if (model.image && !card.querySelector('img')) {
+            var art = model.cutout || model.image;
+            if (art && !card.querySelector('img')) {
                 var img = document.createElement('img');
-                img.src = pre + model.image;
+                img.src = pre + art;
                 img.alt = model.name;
                 img.style.cssText = 'position:absolute;left:0;right:0;top:50%;' +
                     'transform:translateY(-40%);width:100%;max-height:62%;' +
@@ -1070,7 +1055,7 @@
             }
             card.style.cursor = 'pointer';
             card.addEventListener('click', function () {
-                location.href = pre + lang + '/mynaghi/models/' + model.path + '/index.html';
+                location.href = pre + langDir() + 'models/' + model.path + '/index.html';
             });
         });
     }
@@ -1140,10 +1125,10 @@
         });
         paintState();
 
-        /* Find a Car opens a scripted finder on the live site; the model grid
-           on the tenant home is this replica's finder. */
-        var lang = langCode();
+        /* Find a Car opened a scripted finder on the captured property; the
+           model grid on the home page is this demo's finder. */
         var pre = sitePrefix();
+        var home = pre + langDir() + 'index.html';
         $$('li > span.cursor-pointer', header).forEach(function (el) {
             var label = el.textContent.trim();
             if (label !== 'Find a Car' && label.indexOf('بحث عن سيارة') === -1 &&
@@ -1151,20 +1136,22 @@
             el.addEventListener('click', function () {
                 var grid = $('#dn_inline_target_in_grid');
                 if (grid) { grid.scrollIntoView({ behavior: 'smooth', block: 'center' }); return; }
-                location.href = pre + lang + '/mynaghi/index.html';
+                location.href = home;
             });
         });
 
-        /* The location chip routes to the regional gateway; the login button
-           gets the same notice as any other page the demo does not carry;
-           both burgers open the site map. */
+        /* The location chip focuses the dealer network: the showroom section
+           when this page has one, the home page (which does) otherwise. Both
+           burgers open the site map. */
         $$('button', header).forEach(function (btn) {
             if (/^(Jeddah|جدة)$/.test(btn.textContent.trim())) {
-                btn.addEventListener('click', function () { location.href = pre + 'index.html'; });
+                btn.addEventListener('click', function () {
+                    var map = $('.showroom_map') || $('.showroom_header_text');
+                    if (map) { map.scrollIntoView({ behavior: 'smooth', block: 'center' }); return; }
+                    location.href = home;
+                });
             }
         });
-        var login = $('.profile_button', header);
-        if (login) login.setAttribute('data-demo-dead', '1');
         buildSiteMenu();
         $$('.menu_toggler, .menu_close_icon', header).forEach(function (btn) {
             btn.setAttribute('data-open', '#site-menu');
@@ -1172,15 +1159,15 @@
     }
 
     /* The 17 shared popup creatives render in cross-origin iframes and ask the
-       host page for its theme. Answer with Hyundai's, so every one of them
-       arrives dressed in Hyundai blue. Protocol from the factory's boot.js. */
+       host page for its theme. Answer with D·Auto's, so every one of them
+       arrives dressed in the brand navy. Protocol from the factory's boot.js. */
     var THEME = {
         primary: '#002c5f', onPrimary: '#ffffff', accent: '#e63312',
         ink: '#0e1215', muted: '#6e7275', surface: '#ffffff', page: '#f5f5f5',
         line: '#ebebeb', tint: '#eef3f8', radius: '4px',
         brandText: '#002c5f', shadow: '0 12px 32px rgba(0,0,0,.16)',
-        displayFont: '"HyundaiMedium", Arial, sans-serif',
-        bodyFont: '"HyundaiRegular", Arial, sans-serif'
+        displayFont: '"Outfit", Arial, sans-serif',
+        bodyFont: '"Outfit", Arial, sans-serif'
     };
 
     function answerThemeRequests() {

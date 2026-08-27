@@ -1,35 +1,32 @@
 /* ============================================================================
-   Friendly aliases for the site's own font files, used by the demo controls.
-   The replica's page typography does not need these: the site's compiled CSS
-   declares its generated families itself, and the build rewrites those
-   declarations' URLs to ../fonts/. These aliases exist so demo-control styles
-   can say "HyundaiMedium" without depending on a build-generated name.
-
-   The fallback stacks mirror the metric-compatible Arial adjustments the site
-   itself declares, so deleting the .otf files changes nothing structurally.
+   D·Auto typography. The demo uses open Google Fonts end to end: Outfit is
+   the Latin face (a geometric sans in the automotive register), Cairo the
+   Arabic companion. The captured site CSS still names its own generated
+   families; rather than chase every declaration through compiled chunks, the
+   demo asserts its faces universally — the compiled families keep only their
+   metric-adjusted local-Arial fallbacks, so nothing licensed is loaded or
+   shipped.
    ========================================================================== */
 
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Cairo:wght@400;500;600;700;800&display=swap');
+
+html, body, body * {
+  font-family: 'Outfit', 'Segoe UI', Arial, sans-serif !important;
+}
+
+html[lang="ar"] body, html[lang="ar"] body *,
+html[dir="rtl"] body, html[dir="rtl"] body * {
+  font-family: 'Cairo', 'Outfit', Arial, sans-serif !important;
+}
+
+/* Friendly aliases some demo-control styles reach for by name. */
 @font-face {
-  font-family: 'HyundaiRegular';
-  src: url('../fonts/HyundaiSansHead_Regular.otf') format('opentype');
+  font-family: 'DAutoRegular';
+  src: local('Arial');
   font-weight: 400;
-  font-display: swap;
 }
 @font-face {
-  font-family: 'HyundaiMedium';
-  src: url('../fonts/HyundaiSansHead_Medium.otf') format('opentype');
+  font-family: 'DAutoMedium';
+  src: local('Arial');
   font-weight: 500;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'HyundaiBold';
-  src: url('../fonts/HyundaiSansHead_Bold.otf') format('opentype');
-  font-weight: 700;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'HyundaiArabic';
-  src: url('../fonts/GESSTwoMedium_ENNumbers.otf') format('opentype');
-  font-weight: 500;
-  font-display: swap;
 }

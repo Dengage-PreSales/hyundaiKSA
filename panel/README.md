@@ -1,4 +1,4 @@
-# The Dengage panel pack for the Hyundai KSA demo
+# The Dengage panel pack for the D·Auto KSA demo
 
 Everything in this folder is pasted into the Dengage panel by a person, once,
 before the Sunday rehearsal. About 30 to 45 minutes end to end. Nothing here
@@ -6,10 +6,10 @@ touches the shared `dengage_demo_` campaigns, tables or contacts, and nothing
 in this repository deletes anything in Dengage, ever.
 
 The demo works without this folder: the launcher's platform library fires the
-17 shared campaigns as-is. What this folder adds is the Hyundai-specific set
+17 shared campaigns as-is. What this folder adds is the D·Auto-specific set
 the demo leads with.
 
-## 1. The ten Hyundai campaigns
+## 1. The ten D·Auto campaigns
 
 Create each as a new On-Site campaign with a **custom HTML** content, pasting
 the matching file from `creatives/`. Settings are identical apart from the
@@ -27,16 +27,16 @@ sharing this Dengage application.
 
 | Event name | Paste | Content type |
 |---|---|---|
-| `hyundai_demo_test-drive-rescue` | `creatives/test-drive-rescue.html` | Popup |
-| `hyundai_demo_national-day`      | `creatives/national-day.html`      | Popup |
-| `hyundai_demo_finance-teaser`    | `creatives/finance-teaser.html`    | Sticky bar (bottom) |
-| `hyundai_demo_service-due`       | `creatives/service-due.html`       | Slide-in |
-| `hyundai_demo_launch-bar`        | `creatives/launch-bar.html`        | Sticky bar (top) |
-| `hyundai_demo_warranty-expiry`   | `creatives/warranty-expiry.html`   | Slide-in or bar |
-| `hyundai_demo_arrival-alert`     | `creatives/arrival-alert.html`     | Popup |
-| `hyundai_demo_post-service-nps`  | `creatives/post-service-nps.html`  | Popup |
-| `hyundai_demo_ramadan-offer`     | `creatives/ramadan-offer.html`     | Popup |
-| `hyundai_demo_newsletter-hy`     | `creatives/newsletter-hy.html`     | Popup |
+| `dauto_demo_test-drive-rescue` | `creatives/test-drive-rescue.html` | Popup |
+| `dauto_demo_national-day`      | `creatives/national-day.html`      | Popup |
+| `dauto_demo_finance-teaser`    | `creatives/finance-teaser.html`    | Sticky bar (bottom) |
+| `dauto_demo_service-due`       | `creatives/service-due.html`       | Slide-in |
+| `dauto_demo_launch-bar`        | `creatives/launch-bar.html`        | Sticky bar (top) |
+| `dauto_demo_warranty-expiry`   | `creatives/warranty-expiry.html`   | Slide-in or bar |
+| `dauto_demo_arrival-alert`     | `creatives/arrival-alert.html`     | Popup |
+| `dauto_demo_post-service-nps`  | `creatives/post-service-nps.html`  | Popup |
+| `dauto_demo_ramadan-offer`     | `creatives/ramadan-offer.html`     | Popup |
+| `dauto_demo_newsletter-capture`     | `creatives/newsletter-capture.html`     | Popup |
 
 Three facts about these creatives, learned the hard way on the factory side:
 
@@ -44,13 +44,13 @@ Three facts about these creatives, learned the hard way on the factory side:
   are no script tags (the panel strips them on save), and capture goes through
   the engine's own `data-dn-form-id` inputs with `Dn.postSubscription()` and
   `Dn.postQuestion()`.
-- The two capture cards (`arrival-alert`, `newsletter-hy`) get a `DPS-` contact
+- The two capture cards (`arrival-alert`, `newsletter-capture`) get a `DPS-` contact
   key minted by the storefront before the popup can appear, so the contact the
   engine creates carries the demo marker rather than an anonymous `sf_` key.
 - The imagery is served from this demo's published origin, so the campaigns
   only look right once GitHub Pages is live.
 
-**Verify** after pasting: open the demo, open the launcher, fire each Hyundai
+**Verify** after pasting: open the demo, open the launcher, fire each D·Auto
 card once. A card that fires with nothing appearing means the campaign is
 missing, inactive, or its event name differs from the table. Nothing errors:
 a missing campaign is always silent.
@@ -62,10 +62,10 @@ one journey:
 
 1. Journeys > new journey, trigger on the **order event**
    (`order_events`, the storefront sends it when the booking form is
-   submitted; order ids look like `DPS-hyundaiksa-td-...`).
+   submitted; order ids look like `DPS-D·Autoksa-td-...`).
 2. One step: **Web Push**.
    Title: `Booking confirmed`
-   Message: `Your TUCSON test drive is set. We will call to agree the time.`
+   Message: `Your VANTA test drive is set. We will call to agree the time.`
    Arabic variant: `تم تأكيد حجز تجربة القيادة، سنتصل بك لتحديد الموعد.`
 3. Audience: everyone (the trigger scopes it); frequency capping off for the
    demo.
@@ -86,7 +86,7 @@ instead. Do not present an unverified automation.
 ## 4. Remote data: the DMS tables
 
 The Supabase Postgres this account already reads (the same one behind
-`dps_product`) now carries three Hyundai DMS tables, seeded by
+`dps_product`) now carries three D·Auto DMS tables, seeded by
 `supabase/seed.sql` in this repository:
 
 | Table | What it holds |
@@ -103,15 +103,15 @@ existing Postgres connection), then build **remote segments** on
 |---|---|---|
 | Warranty expiring 60 days | `warranty_end` within 60 days of today | 10 |
 | Service overdue | `next_service_due` before today | 162 |
-| Tucson owners, Jeddah | `model_id = tucson` and `city = Jeddah` | 24 |
+| Vanta owners, Jeddah | `model_id = vanta` and `city = Jeddah` | 24 |
 | High lifetime value | `lifetime_value_sar >= 5000` | 86 |
 
 Eight rows are presenter-typeable contacts, engineered for the demo:
 
-- `DPS-1` Tucson owner in Jeddah whose warranty ends in 45 days
-- `DPS-2` Accent owner whose service is 110 days overdue
-- `DPS-3` Palisade owner with SAR 18,400 lifetime value
-- `DPS-4` Santa Fe owner due for service in 4 weeks
+- `DPS-1` Vanta owner in Jeddah whose warranty ends in 45 days
+- `DPS-2` Pulse owner whose service is 110 days overdue
+- `DPS-3` Summit owner with SAR 18,400 lifetime value
+- `DPS-4` Ridge owner due for service in 4 weeks
 
 Open the demo with `?ck=DPS-1` and the browser session becomes that
 customer: their web behaviour lands on the same contact card the DMS row
@@ -138,12 +138,12 @@ curl -s https://pcdn.dengage.com/p/push/28/99d9b8fb-0c62-5a85-3e43-2402554d93a5/
 answers "is the SDK serving". And this one answers "did the pastes land" —
 it downloads the campaign manifest the SDK actually reads (the filename is
 inside the loader; note the `/onsite/` segment in its path) and lists every
-Hyundai trigger it carries:
+D·Auto trigger it carries:
 
 ```
 BASE=https://pcdn.dengage.com/p/push/28/99d9b8fb-0c62-5a85-3e43-2402554d93a5
 curl -s "$BASE/onsite/$(curl -s $BASE/dengage_sdk_loader.js | grep -o 'campaigns\.[a-z0-9]*\.js')" \
-  | grep -o 'hyundai_demo_[a-z-]*' | sort -u
+  | grep -o 'dauto_demo_[a-z-]*' | sort -u
 ```
 
 All ten trigger names from the table in section 1 should print. Before the
@@ -170,7 +170,7 @@ the remote DMS tables from section 4.
 | Car saved | `wishlist_events` | `saved_vehicles` | Web SDK |
 | Test drive requested | `ec:addToCart` (model as line) | `test_drive_requests`: model_id, trim, branch_id, preferred_slot, source | Web SDK / API |
 | Booking form opened | `ec:beginCheckout` | funnel step on the same table | Web SDK |
-| Test drive booked | `ec:order`, order id `DPS-hyundaiksa-td-*` | `test_drive_bookings`: booking_id, model_id, branch_id, slot | Web SDK / API |
+| Test drive booked | `ec:order`, order id `DPS-D·Autoksa-td-*` | `test_drive_bookings`: booking_id, model_id, branch_id, slot | Web SDK / API |
 | Test drive completed or no-show | — (post-visit) | `test_drive_outcomes`: booking_id, outcome, advisor | CRM/DMS batch |
 | Quote or finance requested | contact created (DPS- key) | `finance_applications`: model_id, amount, status | API |
 | Service booked | service form submit (contact story) | `service_bookings`: vin, branch_id, service_type, slot | Web SDK / API |

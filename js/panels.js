@@ -1,10 +1,10 @@
 /* ============================================================================
    The scenario launcher and the event panel, adapted from the Dengage demo
-   factory for the Hyundai KSA replica.
+   factory for the D·Auto demo site.
 
    TWO GROUPS OF TRIGGER CARDS, and the order is deliberate:
 
-     1. Hyundai scenarios fire hyundai_demo_<slug> events. Each is a one-off
+     1. D·Auto scenarios fire dauto_demo_<slug> events. Each is a one-off
         campaign written for this demo, pasted into the panel from panel/ in
         this repository. The prefix is deliberately different from the shared
         set, and every one of those campaigns carries a display rule scoped to
@@ -28,17 +28,17 @@
     var $ = function (sel) { return document.querySelector(sel); };
 
     var SCENARIOS = [
-        /* Hyundai one-off campaigns. hy: true switches the fired prefix. */
-        { slug: 'test-drive-rescue', name: 'Test drive rescue',   group: 'hyundai', hy: true },
-        { slug: 'national-day',      name: 'National Day offer',  group: 'hyundai', hy: true },
-        { slug: 'finance-teaser',    name: 'Finance teaser',      group: 'hyundai', hy: true },
-        { slug: 'service-due',       name: 'Service due',         group: 'hyundai', hy: true },
-        { slug: 'launch-bar',        name: 'New launch bar',      group: 'hyundai', hy: true },
-        { slug: 'warranty-expiry',   name: 'Warranty expiry',     group: 'hyundai', hy: true },
-        { slug: 'arrival-alert',     name: 'Arrival alert',       group: 'hyundai', hy: true },
-        { slug: 'post-service-nps',  name: 'Post-service NPS',    group: 'hyundai', hy: true },
-        { slug: 'ramadan-offer',     name: 'Seasonal offer',      group: 'hyundai', hy: true },
-        { slug: 'newsletter-hy',     name: 'Newsletter capture',  group: 'hyundai', hy: true },
+        /* D·Auto one-off campaigns. hy: true switches the fired prefix. */
+        { slug: 'test-drive-rescue', name: 'Test drive rescue',   group: 'brand', hy: true },
+        { slug: 'national-day',      name: 'National Day offer',  group: 'brand', hy: true },
+        { slug: 'finance-teaser',    name: 'Finance teaser',      group: 'brand', hy: true },
+        { slug: 'service-due',       name: 'Service due',         group: 'brand', hy: true },
+        { slug: 'launch-bar',        name: 'New launch bar',      group: 'brand', hy: true },
+        { slug: 'warranty-expiry',   name: 'Warranty expiry',     group: 'brand', hy: true },
+        { slug: 'arrival-alert',     name: 'Arrival alert',       group: 'brand', hy: true },
+        { slug: 'post-service-nps',  name: 'Post-service NPS',    group: 'brand', hy: true },
+        { slug: 'ramadan-offer',     name: 'Seasonal offer',      group: 'brand', hy: true },
+        { slug: 'newsletter-capture', name: 'Newsletter capture', group: 'brand', hy: true },
 
         /* The shared platform library. Slugs must not change. */
         { slug: 'subscription-popup', name: 'Subscription',     group: 'onsite' },
@@ -85,7 +85,7 @@
     ];
 
     var GROUPS = [
-        { id: 'hyundai', copy: 'groupHyundai' },
+        { id: 'brand', copy: 'groupBrand' },
         { id: 'onsite',  copy: 'groupOnsite' },
         { id: 'abtest',  copy: 'groupAbTest' },
         { id: 'game',    copy: 'groupGame' },
@@ -120,8 +120,8 @@
 
     function dcfg() { return (window.DEMO_CONFIG && window.DEMO_CONFIG.dengage) || {}; }
     function scenarioPrefix() { return dcfg().scenarioPrefix || 'dengage_demo_'; }
-    function hyundaiPrefix() { return dcfg().hyundaiPrefix || 'hyundai_demo_'; }
-    function prefixFor(spec) { return spec && spec.hy ? hyundaiPrefix() : scenarioPrefix(); }
+    function brandPrefix() { return dcfg().brandPrefix || 'dauto_demo_'; }
+    function prefixFor(spec) { return spec && spec.hy ? brandPrefix() : scenarioPrefix(); }
 
     function text(key) {
         return (window.Storefront && window.Storefront.t) ? window.Storefront.t(key) : key;
@@ -157,7 +157,7 @@
                     }
                     var here = !s.target || document.getElementById(s.target);
                     return '<button type="button" class="scenario' + (here ? '' : ' elsewhere') +
-                            (s.hy ? ' hyundai' : '') +
+                            (s.hy ? ' brand' : '') +
                             '" data-scenario="' + s.slug + '">' +
                         '<span class="name">' + s.name + '</span>' +
                         '<span class="slug">' +
@@ -299,7 +299,7 @@
     }
 
     /* Validation at the call site against the same fixed list the dropdown was
-       built from. The sample vehicle is the Tucson, whose price is the real one
+       built from. The sample vehicle is the VANTA, the catalogue's flagship SUV
        the site displays. */
     function fire(eventId) {
         if (ALLOWED.indexOf(eventId) === -1) {
@@ -307,7 +307,7 @@
             return false;
         }
 
-        var car = window.Catalog.get('tucson') || window.Catalog.all()[0];
+        var car = window.Catalog.get('vanta') || window.Catalog.all()[0];
         var lines = (window.Site && window.Site.cartLines) ? window.Site.cartLines() : [];
         var events = window.DengageEvents;
         var sent;
@@ -422,12 +422,12 @@
                     return;
                 }
 
-                var name = window.DengageEvents.scenario(fired, spec && spec.hy ? hyundaiPrefix() : undefined);
+                var name = window.DengageEvents.scenario(fired, spec && spec.hy ? brandPrefix() : undefined);
                 log('Fired ' + name + '. ' +
                     (fired.indexOf('inline-') === 0
                         ? 'Inline content renders into its slot in the page rather than over it.'
                         : (spec && spec.hy
-                            ? text('hyundaiSetupNote') + '.'
+                            ? text('setupNote') + '.'
                             : 'If nothing appears, no campaign has that trigger name.')));
                 if (window.Storefront) window.Storefront.closeOverlays();
                 return;

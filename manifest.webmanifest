@@ -1,8 +1,8 @@
 {
-  "name": "Hyundai Saudi Arabia",
-  "short_name": "Hyundai KSA",
-  "description": "Hyundai Saudi Arabia demo experience",
-  "start_url": "./en/mynaghi/",
+  "name": "D·Auto",
+  "short_name": "D·Auto",
+  "description": "D·Auto demo experience",
+  "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "background_color": "#ffffff",

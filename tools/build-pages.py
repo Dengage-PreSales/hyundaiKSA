@@ -1,15 +1,21 @@
 #!/usr/bin/env python3
-"""Build the static replica pages from the hydrated captures.
+"""Build the static demo pages from the hydrated captures.
 
 Each page in reference/hydrated/ is transformed into a self-contained static
-page: scripts and trackers removed, every asset rewritten to the committed
-copy under assets/img/cdn/, links mapped to the pages this replica carries,
-and the Dengage layer injected with the load-bearing head order (identity
-first, SDK second, stylesheets after).
+page for D·Auto, a fictitious automotive brand: scripts and trackers removed,
+every photograph and logo replaced by the committed brand-asset system under
+assets/brand/, every name, model, trademark and phone number swapped for the
+fictitious equivalents, links mapped to the pages this demo carries, and the
+Dengage layer injected with the load-bearing head order (identity first, SDK
+second, stylesheets after).
+
+The page LAYOUT is the only thing the captures still provide; no proprietary
+name, image, font or mark survives into the built tree.
 """
-import re
-import pathlib
+import hashlib
 import json
+import pathlib
+import re
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 HYD = ROOT / "reference" / "hydrated"
@@ -20,64 +26,357 @@ CSS_CHUNKS = [
     "31qivdt-iwa4m", "1aoqx93wdvmqk", "1z_mbvpkjhpd5",
 ]
 
-PAGES = {
-    "gateway.ar": {"out": "index.html",                                "type": "other"},
-    "gateway.en": {"out": "en/index.html",                             "type": "other"},
-    "home.en":    {"out": "en/mynaghi/index.html",                     "type": "home"},
-    "home.ar":    {"out": "ar/mynaghi/index.html",                     "type": "home"},
-    "tucson.en":  {"out": "en/mynaghi/models/tucson/index.html",       "type": "product", "product": "tucson", "price": "101258", "cat": "SUV"},
-    "tucson.ar":  {"out": "ar/mynaghi/models/tucson/index.html",       "type": "product", "product": "tucson", "price": "101258", "cat": "SUV"},
-    "santafe.en": {"out": "en/mynaghi/models/santa-fe/index.html",     "type": "product", "product": "santa-fe", "price": "138429", "cat": "SUV"},
-    "santafe.ar": {"out": "ar/mynaghi/models/santa-fe/index.html",     "type": "product", "product": "santa-fe", "price": "138429", "cat": "SUV"},
-    "offers.en":  {"out": "en/mynaghi/offers/index.html",              "type": "promotion"},
-    "offers.ar":  {"out": "ar/mynaghi/offers/index.html",              "type": "promotion"},
-    "campaign.en": {"out": "en/mynaghi/offers/back-to-school/index.html", "type": "promotion", "promotion": "back-to-school"},
-    "campaign.ar": {"out": "ar/mynaghi/offers/back-to-school/index.html", "type": "promotion", "promotion": "back-to-school"},
-    "service.en": {"out": "en/mynaghi/service-booking/index.html",     "type": "other"},
-    "service.ar": {"out": "ar/mynaghi/service-booking/index.html",     "type": "other"},
-    "contact.en": {"out": "en/mynaghi/contact-us/index.html",          "type": "other"},
-    "contact.ar": {"out": "ar/mynaghi/contact-us/index.html",          "type": "other"},
+LANGDIR = {"en": "", "ar": "ar/"}
+
+# Non-model pages: capture stem -> (site-relative output, spec).
+BASE_PAGES = {
+    "home":     ("index.html",                     {"type": "home"}),
+    "offers":   ("offers/index.html",              {"type": "promotion"}),
+    "campaign": ("offers/back-to-school/index.html", {"type": "promotion", "promotion": "back-to-school"}),
+    "service":  ("service-booking/index.html",     {"type": "other"}),
+    "contact":  ("contact-us/index.html",          {"type": "other"}),
 }
 
-# Site routes that exist in the replica, per language, mapped to output paths.
-ROUTES = {
-    "": "index.html",
-    "/mynaghi": "{lang}/mynaghi/index.html",
-    "/mynaghi/models/tucson": "{lang}/mynaghi/models/tucson/index.html",
-    "/mynaghi/models/santa-fe": "{lang}/mynaghi/models/santa-fe/index.html",
-    "/mynaghi/offers": "{lang}/mynaghi/offers/index.html",
-    "/mynaghi/offers/backtoschool": "{lang}/mynaghi/offers/back-to-school/index.html",
-    "/mynaghi/service-booking": "{lang}/mynaghi/service-booking/index.html",
-    "/mynaghi/contact-us": "{lang}/mynaghi/contact-us/index.html",
+# Model pages: capture stem -> (fictitious slug, path on the captured property
+# as it appears inside hrefs, list price in SAR, category). The price NUMBERS
+# are kept from the captures so the funnel maths stays realistic; attached to
+# invented models they are openly fictional. One model publishes no price on
+# purpose: the omit-a-key-you-cannot-source rule needs a living example.
+MODEL_SRC = {
+    "tucson":         ("vanta",           "tucson",         "101258", "SUV"),
+    "santafe":        ("ridge",           "santa-fe",       "138429", "SUV"),
+    "accent":         ("pulse",           "accent",         "71484",  "Sedan"),
+    "azera":          ("sovereign",       "azera",          "158436", "Sedan"),
+    "elantra":        ("vector",          "Elantra",        "86694",  "Sedan"),
+    "grandi10":       ("neo",             "grandi10",       "56239",  "Sedan"),
+    "sonata":         ("serene",          "sonata",         "107904", "Sedan"),
+    "creta":          ("terra",           "creta",          "86200",  "SUV"),
+    "creta-grand":    ("terra-max",       "creta-grand",    "102054", "SUV"),
+    "kona":           ("apex",            "kona",           "92544",  "SUV"),
+    "palisade":       ("summit",          "palisade",       "177039", "SUV"),
+    "venue":          ("urban",           "venue",          "77334",  "SUV"),
+    "stargazer":      ("nova",            "stargazer",      "79147",  "MPV"),
+    "staria-premium": ("voyager-premium", "staria-premium", "180294", "MPV"),
+    "staria-van":     ("voyager-van",     "staria-van",     None,     "MPV"),
+    "staria-wagon":   ("voyager",         "staria-wagon",   "136224", "MPV"),
 }
 
-# The rest of the model range, generated: slug -> (live URL path, price in SAR
-# from the model grid, category). Elantra's path is capitalised on the live
-# site; staria-van's price is not published, so its page carries no price.
-MODEL_PAGES = {
-    "accent":         ("accent",         "71484",  "Sedan"),
-    "azera":          ("azera",          "158436", "Sedan"),
-    "elantra":        ("Elantra",        "86694",  "Sedan"),
-    "grandi10":       ("grandi10",       "56239",  "Sedan"),
-    "sonata":         ("sonata",         "107904", "Sedan"),
-    "creta":          ("creta",          "86200",  "SUV"),
-    "creta-grand":    ("creta-grand",    "102054", "SUV"),
-    "kona":           ("kona",           "92544",  "SUV"),
-    "palisade":       ("palisade",       "177039", "SUV"),
-    "venue":          ("venue",          "77334",  "SUV"),
-    "stargazer":      ("stargazer",      "79147",  "MPV"),
-    "staria-premium": ("staria-premium", "180294", "MPV"),
-    "staria-van":     ("staria-van",     None,     "MPV"),
-    "staria-wagon":   ("staria-wagon",   "136224", "MPV"),
-}
-for _slug, (_path, _price, _cat) in MODEL_PAGES.items():
+PAGES = {}
+for _stem, (_out, _spec) in BASE_PAGES.items():
     for _lang in ("en", "ar"):
-        _spec = {"out": f"{_lang}/mynaghi/models/{_path}/index.html",
+        PAGES[f"{_stem}.{_lang}"] = dict(_spec, out=LANGDIR[_lang] + _out)
+for _stem, (_slug, _live, _price, _cat) in MODEL_SRC.items():
+    for _lang in ("en", "ar"):
+        _spec = {"out": f"{LANGDIR[_lang]}models/{_slug}/index.html",
                  "type": "product", "product": _slug, "cat": _cat}
         if _price:
             _spec["price"] = _price
-        PAGES[f"{_slug}.{_lang}"] = _spec
-    ROUTES[f"/mynaghi/models/{_path}"] = "{lang}/mynaghi/models/" + _path + "/index.html"
+        PAGES[f"{_stem}.{_lang}"] = _spec
+
+# Captured-property routes -> site-relative output templates. Every href the
+# captures carry resolves inside this demo; a fictitious brand has no live
+# site to fall back to, so nothing may leave it.
+ROUTES = {
+    "": "{langdir}index.html",
+    "/mynaghi": "{langdir}index.html",
+    "/mynaghi/models": "{langdir}index.html",
+    "/mynaghi/offers": "{langdir}offers/index.html",
+    "/mynaghi/offers/backtoschool": "{langdir}offers/back-to-school/index.html",
+    "/mynaghi/service-booking": "{langdir}service-booking/index.html",
+    "/mynaghi/contact-us": "{langdir}contact-us/index.html",
+}
+for _stem, (_slug, _live, _price, _cat) in MODEL_SRC.items():
+    for _key in {_live, _live.lower()}:
+        ROUTES[f"/mynaghi/models/{_key}"] = "{langdir}models/" + _slug + "/index.html"
+
+# Pages the property has and this demo deliberately does not: each maps to
+# the demo page that carries the same intent.
+ALIAS = {
+    "about-mynaghi": "index.html",
+    "innovation": "index.html",
+    "yourperfectpartner": "index.html",
+    "after-sales-network": "service-booking/index.html",
+    "maintenance": "service-booking/index.html",
+    "parts-and-accessories": "service-booking/index.html",
+    "warranty": "service-booking/index.html",
+    "bluelink": "service-booking/index.html",
+    "hyundai-service": "service-booking/index.html",
+    "aftersales-offers": "offers/index.html",
+    "career": "contact-us/index.html",
+    "cookies": "contact-us/index.html",
+    "find-us": "contact-us/index.html",
+    "fleet": "contact-us/index.html",
+    "legal-terms": "contact-us/index.html",
+    "login": "contact-us/index.html",
+    "privacy-policy": "contact-us/index.html",
+    "terms-conditions": "contact-us/index.html",
+    "terms-of-use": "contact-us/index.html",
+}
+
+# ---------------------------------------------------------------------------
+# The D·Auto brand-asset system
+
+SCENES = [f"scene-{b}-{i}.svg" for b in ("sedan", "suv", "van") for i in (1, 2, 3, 4)]
+PANELS = [f"panel-{i}.svg" for i in (1, 2, 3, 4)]
+BODY_OF = {"Sedan": "sedan", "SUV": "suv", "MPV": "van"}
+
+# Mirrors the ART map in js/vehicles.js: each model's signature scene.
+ART = {
+    "pulse": "scene-sedan-1.svg", "sovereign": "scene-sedan-2.svg",
+    "vector": "scene-sedan-3.svg", "neo": "scene-sedan-4.svg",
+    "serene": "scene-sedan-1.svg", "terra": "scene-suv-1.svg",
+    "terra-max": "scene-suv-2.svg", "apex": "scene-suv-3.svg",
+    "summit": "scene-suv-4.svg", "ridge": "scene-suv-1.svg",
+    "vanta": "scene-suv-2.svg", "urban": "scene-suv-3.svg",
+    "nova": "scene-van-1.svg", "voyager-premium": "scene-van-2.svg",
+    "voyager-van": "scene-van-3.svg", "voyager": "scene-van-4.svg",
+}
+
+HEADER_LOGO_SVG = ('<svg xmlns="http://www.w3.org/2000/svg" width="125" height="16" '
+                   'viewBox="0 0 125 16" fill="none" aria-label="D&#183;AUTO">'
+                   '<text x="0" y="13.2" font-family="Arial, sans-serif" font-size="14.5" '
+                   'font-weight="800" letter-spacing="3" class="color-fill">D&#183;AUTO</text></svg>')
+FOOTER_LOGO_SVG = ('<svg xmlns="http://www.w3.org/2000/svg" width="140" height="18" '
+                   'viewBox="0 0 140 18" fill="none" aria-label="D&#183;AUTO">'
+                   '<text x="0" y="14.6" font-family="Arial, sans-serif" font-size="16" '
+                   'font-weight="800" letter-spacing="3.4" fill="#ffffff">D&#183;AUTO</text></svg>')
+
+
+def brand_asset(path: str, spec: dict) -> str:
+    """A deterministic brand tile for any captured photograph: product pages
+    draw from their own body style's scene set so a model's gallery reads as
+    one family; everything else cycles the whole system."""
+    h = int(hashlib.md5(path.encode("utf-8")).hexdigest(), 16)
+    if spec.get("product"):
+        body = BODY_OF.get(spec.get("cat", "SUV"), "suv")
+        pool = [f"scene-{body}-{i}.svg" for i in (1, 2, 3, 4)] + PANELS
+    else:
+        pool = SCENES + PANELS
+    return "assets/brand/" + pool[h % len(pool)]
+
+
+# ---------------------------------------------------------------------------
+# The rebrand dictionaries. Ordered: longer phrases first so a long match is
+# never half-eaten by a short one, compound lockups before their parts so
+# nothing doubles.
+
+REBRAND = [
+    # Company lockups before their component words.
+    ("Mohamed Yousuf Naghi Motors Co.", "D·Auto Motors Co."),
+    ("MOHAMED YOUSUF NAGHI MOTORS", "D·AUTO MOTORS"),
+    ("Mohamed Yousuf Naghi Motors", "D·Auto Motors"),
+    ("Mohamed Yousuf Naghi", "D·Auto Motors"),
+    ("شركة محمد يوسف ناغي للسيارات", "شركة دي أوتو للسيارات"),
+    ("محمد يوسف ناغي للسيارات", "دي أوتو للسيارات"),
+    ("محمد يوسف ناغي", "دي أوتو"),
+    ("MYNaghi Hyundai", "D·Auto"),
+    ("Mynaghi Hyundai", "D·Auto"),
+    ("Naghi Hyundai", "D·Auto"),
+    ("MYNAGHI", "D·AUTO"),
+    ("MYNaghi", "D·Auto"),
+    ("MyNaghi", "D·Auto"),
+    ("Mynaghi", "D·Auto"),
+    ("mynaghi", "D·Auto"),
+    ("NAGHI", "D·AUTO"),
+    ("Naghi", "D·Auto"),
+    ("ناغي", "دي أوتو"),
+    # The brand itself.
+    ("HYUNDAI", "D·AUTO"),
+    ("Hyundai", "D·Auto"),
+    ("hyundai", "D·Auto"),
+    ("هيونداي", "دي أوتو"),
+    # Model names, longest first. English.
+    ("STARIA PREMIUM", "VOYAGER PREMIUM"),
+    ("STARIA Premium", "VOYAGER Premium"),
+    ("Staria Premium", "Voyager Premium"),
+    ("STARIA VAN", "VOYAGER VAN"),
+    ("STARIA Van", "VOYAGER Van"),
+    ("Staria Van", "Voyager Van"),
+    ("STARIA WAGON", "VOYAGER WAGON"),
+    ("STARIA Wagon", "VOYAGER Wagon"),
+    ("Staria Wagon", "Voyager Wagon"),
+    ("CRETA GRAND", "TERRA MAX"),
+    ("Creta Grand", "Terra Max"),
+    ("GRAND I10", "NEO"),
+    ("GRAND i10", "NEO"),
+    ("Grand i10", "Neo"),
+    ("SANTA FE", "RIDGE"),
+    ("Santa Fe", "Ridge"),
+    ("SANTA-FE", "RIDGE"),
+    ("Santa-Fe", "Ridge"),
+    ("TUCSON", "VANTA"),
+    ("Tucson", "Vanta"),
+    # The captured property misspells its own model in several headings.
+    ("TUSCON", "VANTA"),
+    ("Tuscon", "Vanta"),
+    ("tuscon", "Vanta"),
+    ("ACCENT", "PULSE"),
+    ("Accent", "Pulse"),
+    ("AZERA", "SOVEREIGN"),
+    ("Azera", "Sovereign"),
+    ("ELANTRA", "VECTOR"),
+    ("Elantra", "Vector"),
+    ("SONATA", "SERENE"),
+    ("Sonata", "Serene"),
+    ("CRETA", "TERRA"),
+    ("Creta", "Terra"),
+    ("KONA", "APEX"),
+    ("Kona", "Apex"),
+    ("PALISADE", "SUMMIT"),
+    ("Palisade", "Summit"),
+    ("VENUE", "URBAN"),
+    ("Venue", "Urban"),
+    ("STARGAZER", "NOVA"),
+    ("Stargazer", "Nova"),
+    ("STARIA", "VOYAGER"),
+    ("Staria", "Voyager"),
+    # Model names, Arabic (both attested spellings where the captures vary).
+    ("ستاريا بريميوم", "فوياجر بريميوم"),
+    ("ستاريا فان", "فوياجر فان"),
+    ("كريتا جراند", "تيرا ماكس"),
+    ("جراند i10", "نيو"),
+    ("سانتافي", "ريدج"),
+    ("سانتا في", "ريدج"),
+    ("سنتافي", "ريدج"),
+    ("توسان", "فانتا"),
+    ("أكسنت", "بولس"),
+    ("اكسنت", "بولس"),
+    ("أزيرا", "سوفرين"),
+    ("ازيرا", "سوفرين"),
+    ("إلنترا", "فكتور"),
+    ("النترا", "فكتور"),
+    ("سوناتا", "سيرين"),
+    ("كريتا", "تيرا"),
+    ("كونا", "أبكس"),
+    ("باليسيد", "سوميت"),
+    ("فينيو", "أوربان"),
+    ("ستارجايزر", "نوفا"),
+    ("ستارجازر", "نوفا"),
+    ("ستاريا", "فوياجر"),
+    # Technology marks.
+    ("Sensuous Sportiness", "Sculpted Motion"),
+    ("Sensuous", "Sculpted"),
+    ("SMARTSENSE", "SENSESHIELD"),
+    ("SmartSense", "SenseShield"),
+    ("Smartsense", "SenseShield"),
+    ("smartSense", "SenseShield"),
+    ("smartsense", "SenseShield"),
+    ("Smart Sense", "SenseShield"),
+    ("سمارت سينس", "سينس شيلد"),
+    ("BLUELINK", "D·CONNECT"),
+    ("BlueLink", "D·Connect"),
+    ("Bluelink", "D·Connect"),
+    ("blueLink", "D·Connect"),
+    ("bluelink", "D·Connect"),
+    ("Blue Link", "D·Connect"),
+    ("بلولينك", "دي كونكت"),
+    ("بلو لينك", "دي كونكت"),
+    ("N LINE", "R-SPEC"),
+    ("N Line", "R-Spec"),
+    ("N-Line", "R-Spec"),
+    ("N-line", "R-Spec"),
+    ("n line", "R-Spec"),
+    ("N branding", "R-Spec branding"),
+    ("N badge", "R-Spec badge"),
+    ("N logo", "R-Spec logo"),
+    ("N Performance", "R-Spec Performance"),
+    ("HTRAC", "AWD"),
+    ("Smartstream", "EcoStream"),
+    ("SmartStream", "EcoStream"),
+    ("IONIQ", "E-SERIES"),
+    ("CALLIGRAPHY", "SIGNATURE"),
+    ("Calligraphy", "Signature"),
+    ("بشعار N", "بشعار R-Spec"),
+    ("شعار N", "شعار R-Spec"),
+    ("hyundaiksa.com", "d-auto.example"),
+]
+
+# A lockup like "MYNaghi Hyundai TUCSON" can leave a doubled brand after two
+# passes; collapse it.
+CLEANUP = [
+    ("D·AUTO D·AUTO", "D·AUTO"),
+    ("D·Auto D·Auto", "D·Auto"),
+    ("دي أوتو دي أوتو", "دي أوتو"),
+]
+
+# Applied to the whole document, references included: the property's real
+# numbers become the fictitious brand's, and the marque-named font tokens in
+# class and style space are renamed EXACTLY as build_css renames them inside
+# the compiled chunks — the two must stay in lockstep or those selectors stop
+# matching. None of these tokens collides with the load-bearing demo slug
+# (data-demo-slug="hyundaiksa"), which is an internal namespace, not content.
+LITERAL_SWAPS = [
+    ("+9668001240191", "+9668001002000"),
+    ("9668001240191", "9668001002000"),
+    ("8001240191", "8001002000"),
+    ("800 124 0191", "800 100 2000"),
+    ("800-124-0191", "800-100-2000"),
+    ("font-hyundai-arabic-medium", "font-dauto-arabic-medium"),
+    ("font-hyundai-medium", "font-dauto-medium"),
+    ("font-hyundai-regular", "font-dauto-regular"),
+    ("font-hyundai-bold", "font-dauto-bold"),
+    ("font-bold-hyundai", "font-bold-dauto"),
+    ("hyundaiArabicMedium", "dautoArabicMedium"),
+    ("hyundaiMedium", "dautoMedium"),
+    ("hyundaiRegular", "dautoRegular"),
+    ("hyundaiBold", "dautoBold"),
+    ("hyundaiLight", "dautoLight"),
+    ("hyundaiarabicmedium_", "dautoarabicmedium_"),
+    ("hyundaimedium_", "dautomedium_"),
+    ("hyundairegular_", "dautoregular_"),
+    ("hyundaibold_", "dautobold_"),
+    ("hyundailight_", "dautolight_"),
+    # Class/data tokens the templates name after models and marks (the
+    # tucson-title heading class is reused on every model page). build_css
+    # applies the same renames so the selectors keep matching.
+    ("tucson", "vanta"),
+    ("tuscon", "vanta"),
+    ("smartsense", "senseshield"),
+]
+
+TEXT_ATTRS = r"(alt|aria-label|aria-description|placeholder|title|content|models_name|models_code)"
+
+
+def _apply_words(text: str) -> str:
+    for old, new in REBRAND:
+        if old in text:
+            text = text.replace(old, new)
+    for old, new in CLEANUP:
+        if old in text:
+            text = text.replace(old, new)
+    return text
+
+
+def rebrand(html: str) -> str:
+    """Nothing proprietary survives: model names, marks and company names go
+    from every text node and every human-readable attribute; phone numbers go
+    from the whole document. Class names, ids and asset paths are structure,
+    not content, and stay exactly as captured."""
+    for old, new in LITERAL_SWAPS:
+        html = html.replace(old, new)
+    html = re.sub(r">([^<]*)<", lambda m: ">" + _apply_words(m.group(1)) + "<", html)
+    html = re.sub(TEXT_ATTRS + r'="([^"]*)"',
+                  lambda m: m.group(1) + '="' + _apply_words(m.group(2)) + '"', html)
+    return html
+
+
+def swap_logos(t: str) -> str:
+    """The captured wordmark svgs (125x16 in the header, 140x18 in the footer)
+    become the D·AUTO wordmark. The header variant keeps class="color-fill" so
+    the site's own hover/scroll recolouring keeps driving it; the footer sits
+    on the dark band and is simply white. The footer's bitmap logo (an <img>
+    hotlinked from the build agency's CDN) becomes the white brand logo."""
+    t = re.sub(r'<svg[^>]*viewBox="0 0 125 16".*?</svg>', HEADER_LOGO_SVG, t, flags=re.S)
+    t = re.sub(r'<svg[^>]*viewBox="0 0 140 18".*?</svg>', FOOTER_LOGO_SVG, t, flags=re.S)
+    return t
+
+
+def strip_profile_button(t: str) -> str:
+    """A fictitious brand has no account backend to sign in to, and the
+    demonstration-site contract forbids a control that cannot act. The whole
+    Login affordance leaves the header."""
+    return re.sub(r'<button[^>]*class="[^"]*profile_button[^"]*"[^>]*>.*?</button>',
+                  "", t, flags=re.S)
 
 
 def rel_to_root(out_path: str) -> str:
@@ -86,20 +385,24 @@ def rel_to_root(out_path: str) -> str:
 
 
 def map_route(href: str, rel: str):
-    """Return the local href for a site-internal path, or None if unbuilt."""
+    """Return the local href for a captured-property path, or None for a href
+    that is not site-internal. Every internal path resolves: built page,
+    intent alias, or home."""
     clean = href.split("?")[0].split("#")[0].rstrip("/")
     m = re.match(r"^/(en|ar)(/.*)?$", clean)
     if not m:
         return None
     lang, rest = m.group(1), m.group(2) or ""
-    if rest == "" and lang == "ar":
-        return rel + "index.html"
-    if rest == "" and lang == "en":
-        return rel + "en/index.html"
+    langdir = LANGDIR[lang]
     target = ROUTES.get(rest)
+    if not target and rest.startswith("/mynaghi/"):
+        seg = rest[len("/mynaghi/"):].split("/")[0]
+        alias = ALIAS.get(seg)
+        if alias:
+            target = "{langdir}" + alias
     if not target:
-        return "DEAD"
-    return rel + target.format(lang=lang)
+        target = "{langdir}index.html"
+    return rel + target.format(langdir=langdir)
 
 
 def strip_scripts(t: str) -> str:
@@ -148,8 +451,14 @@ def strip_lazy_reservations(t: str) -> str:
     return re.sub(r'style="([^"]*)"', fix, t)
 
 
-def rewrite_assets(t: str, rel: str) -> str:
+def rewrite_assets(t: str, rel: str, spec: dict) -> str:
+    """Every captured photograph becomes a committed D·Auto brand tile; the
+    handful of generic site-root icons keep their committed copies."""
     t = t.replace("&amp;", "&")
+    # The build agency's CDN serves exactly one thing the pages show: the
+    # footer's white wordmark bitmap.
+    t = re.sub(r"https://assets\.tech\.beyond-creation\.net/[^\s\"'<>]+",
+               rel + "assets/brand/logo-white.svg", t)
     # Parentheses are legal and PRESENT in their filenames (image-(8).png), so
     # the path class must allow them; quotes, whitespace and angle brackets
     # still terminate, which is what actually delimits a URL in markup.
@@ -158,15 +467,20 @@ def rewrite_assets(t: str, rel: str) -> str:
     # inline-style url(&quot;...&quot;) still ends before the entity. Query
     # strings are the second group and are dropped.
     t = re.sub(CDN_PREFIX + r"((?:[^\s\"'<>?&]|&(?!quot;|amp;))+)(\?[^\s\"'<>]*)?",
-               lambda m: rel + "assets/img/cdn/" + m.group(1), t)
+               lambda m: rel + brand_asset(m.group(1), spec), t)
     # Whatever still points at their _next tree cannot resolve here.
     t = re.sub(r"/_next/image\?url=([^\s\"'&]+)[^\s\"']*", r"\1", t)
     # The handful of images served from the site root rather than the CDN,
     # in every spelling they appear in: absolute to the live host, or
-    # root-relative inside src AND srcset candidate lists.
+    # root-relative inside src AND srcset candidate lists. Anything carrying
+    # the old marque in its name becomes the brand logo instead.
     t = t.replace("https://hyundaiksa.com/images/", "/images/")
-    t = re.sub(r"/images/([^\s\"'<>,?\\]+)(\?[^\s\"'<>,]*)?",
-               lambda m: rel + "assets/img/site/" + m.group(1), t)
+    def site_img(m):
+        name = m.group(1)
+        if "hyundai" in name.lower():
+            return rel + "assets/brand/logo-white.svg"
+        return rel + "assets/img/site/" + name
+    t = re.sub(r"/images/([^\s\"'<>,?\\]+)(\?[^\s\"'<>,]*)?", site_img, t)
     return t
 
 
@@ -199,9 +513,10 @@ def ld_media(src: str):
 
 
 def replace_videos(t: str, video_thumbs: dict) -> str:
-    """A committed replica carries no multi-megabyte films. Each video element
+    """A committed demo carries no multi-megabyte films. Each video element
     becomes its own declared thumbnail (from the page's JSON-LD), or its
-    poster; one with neither disappears."""
+    poster; one with neither disappears. The thumbnail URL is a CDN path, so
+    the asset pass then turns it into a brand tile like any other image."""
     def swap(match):
         block = match.group(0)
         image = None
@@ -252,21 +567,65 @@ def backfill_hero_images(t: str, hero_list) -> str:
     return "".join(out)
 
 
+def force_hero_scene(t: str, rel: str, slug: str) -> str:
+    """A model page's first hero slide shows that model's own signature scene,
+    whatever photograph the capture happened to freeze there."""
+    art = ART.get(slug)
+    if not art:
+        return t
+    at = t.find("banner-slide")
+    if at == -1:
+        return t
+    m = re.search(r'(<img[^>]*?src=")[^"]*(")', t[at:at + 8000])
+    if not m:
+        return t
+    s, e = at + m.start(), at + m.end()
+    return t[:s] + m.group(1) + rel + "assets/brand/" + art + m.group(2) + t[e:]
+
+
+HOME_HERO = ["scene-suv-2.svg", "scene-sedan-1.svg", "scene-van-2.svg",
+             "scene-suv-4.svg", "scene-sedan-3.svg"]
+
+
+def force_home_heroes(t: str) -> str:
+    """The home hero carousel is the first thing anyone sees: every slide gets
+    a car scene, in a fixed rotation, instead of whatever the hash draw would
+    give it. Runs after rewrite_assets, so it retargets committed paths."""
+    slide_at = [m.start() for m in re.finditer("banner-slide", t)]
+    if not slide_at:
+        return t
+    out, last, idx = [], 0, 0
+    for at in slide_at:
+        window = t[at:at + 8000]
+        m = re.search(r'(src=")[^"]*assets/brand/[^"]*(")', window)
+        if not m:
+            continue
+        s, e = at + m.start(), at + m.end()
+        if s < last:
+            continue
+        rel_m = re.search(r'src="((?:\.\./)*)assets/brand/', window)
+        rel = rel_m.group(1) if rel_m else ""
+        out.append(t[last:s])
+        out.append('src="' + rel + "assets/brand/" + HOME_HERO[idx % len(HOME_HERO)] + '"')
+        last = e
+        idx += 1
+    out.append(t[last:])
+    return "".join(out)
+
+
 def rewrite_links(t: str, rel: str) -> str:
-    """Every internal link resolves: to the replica's own page when it is
-    built, and to the SAME page on the live property, in a new tab, when it
-    is not. The demonstration-site contract is that nothing on screen is a
-    dead placeholder."""
+    """Every link resolves inside the demo. Captured-property hrefs — relative
+    or absolute — map to the built page with the same intent; there is no
+    live property behind a fictitious brand to fall back to."""
     def fix(match):
         href = match.group(1)
+        if href.startswith("https://hyundaiksa.com/"):
+            href = href[len("https://hyundaiksa.com"):]
         if href.startswith(("http", "tel:", "mailto:", "#", "javascript:")):
             return match.group(0)
         mapped = map_route(href, rel)
         if mapped is None:
             return match.group(0)
-        if mapped == "DEAD":
-            return ('href="https://hyundaiksa.com' + href +
-                    '" target="_blank" rel="noopener"')
         return 'href="' + mapped + '"'
     return re.sub(r'href="([^"]*)"', fix, t)
 
@@ -299,7 +658,8 @@ def head_block(name: str, spec: dict, title: str, description: str, rel: str,
 <title>{title}</title>
 <meta name="description" content="{description}">
 <meta name="robots" content="noindex">
-<link rel="icon" href="{rel}assets/favicon.ico">
+<link rel="icon" type="image/svg+xml" href="{rel}assets/brand/favicon.svg">
+<link rel="icon" href="{rel}assets/favicon.ico" sizes="32x32">
 <link rel="manifest" href="{rel}manifest.webmanifest">
 <meta name="theme-color" content="#002c5f">
 
@@ -335,7 +695,7 @@ def head_block(name: str, spec: dict, title: str, description: str, rel: str,
 def mounts_block(rel: str, lang: str) -> str:
     ar = lang == "ar"
     launcher_label = "عرض دنقيج" if ar else "Dengage demo"
-    inbox_label = "تحديثات هيونداي" if ar else "Hyundai updates"
+    inbox_label = "تحديثات دي أوتو" if ar else "D·Auto updates"
     intro = ("شغّل أي تجربة على هذه الصفحة مباشرة. كل شيء يصل إلى لوحة دنقيج لحظة حدوثه."
              if ar else
              "Fire any experience on this page, live. Everything lands in the Dengage panel as it happens.")
@@ -412,8 +772,8 @@ def build(name: str, spec: dict) -> str:
     out_path = spec["out"]
     rel = rel_to_root(out_path)
     lang = "ar" if name.endswith(".ar") else "en"
+    site_path = out_path[3:] if out_path.startswith("ar/") else out_path
 
-    html_tag = re.search(r"<html([^>]*)>", src)
     title = re.search(r"<title>(.*?)</title>", src, re.S)
     desc = re.search(r'<meta name="description" content="([^"]*)"', src)
     body_m = re.search(r"<body([^>]*)>(.*)</body>", src, re.S)
@@ -423,32 +783,20 @@ def build(name: str, spec: dict) -> str:
     body_attrs, body = body_m.group(1), body_m.group(2)
 
     video_thumbs, hero_list = ld_media(src)
-    # The live gateway is chromeless: its only navigation is the scripted
-    # geolocation popup, which a static page cannot run. The tenant home's
-    # header takes its place, injected raw so every later pass (scripts,
-    # assets, links) treats it like the rest of the page.
-    if name.startswith("gateway"):
-        home_src = (HYD / f"home.{lang}.html").read_text(errors="ignore")
-        hm = re.search(r"<header\b.*?</header>", home_src, re.S)
-        if hm:
-            body = hm.group(0) + body
-        fm = re.search(r"<footer\b.*?</footer>", home_src, re.S)
-        if fm:
-            body = body + fm.group(0)
     body = strip_scripts(body)
-    # The gateway heroes' Explore buttons had script-driven navigation; they
-    # become plain links into the Mynaghi tenant of the page's language.
-    if name.startswith("gateway"):
-        target = rel + lang + "/mynaghi/index.html"
-        body = re.sub(r'<button\b(?=[^>]*aria-label="(?:اكتشف|Explore|استكشف)")',
-                      '<button onclick="location.href=\'' + target + '\'" ', body)
     body = settle_inline_styles(body)
     body = strip_lazy_reservations(body)
     body = replace_videos(body, video_thumbs)
     body = backfill_hero_images(body, hero_list)
-    body = rewrite_assets(body, rel)
+    body = rewrite_assets(body, rel, spec)
+    if spec.get("product"):
+        body = force_hero_scene(body, rel, spec["product"])
+    if spec["type"] == "home":
+        body = force_home_heroes(body)
     body = rewrite_links(body, rel)
-    body = wire_test_drive(body, spec.get("product", "tucson"))
+    body = swap_logos(body)
+    body = strip_profile_button(body)
+    body = wire_test_drive(body, spec.get("product", "vanta"))
 
     # The header needs the class js/slots.js measures.
     body = re.sub(r"<header\b([^>]*)class=\"", r'<header\1class="site-header ', body, count=1)
@@ -475,8 +823,6 @@ def build(name: str, spec: dict) -> str:
 
     # Page identity for the event layer.
     extra_attrs = f' data-page-type="{spec["type"]}"'
-    if name.startswith("gateway"):
-        extra_attrs += ' data-gateway="1"'
     if spec.get("product"):
         extra_attrs += f' data-product-id="{spec["product"]}"'
         if spec.get("price"):
@@ -488,14 +834,14 @@ def build(name: str, spec: dict) -> str:
     body_attrs = re.sub(r'style="[^"]*"', "", body_attrs)
 
     dirattr = "rtl" if lang == "ar" else "ltr"
-    page_title = title.group(1).strip() if title else "Hyundai Saudi Arabia"
+    page_title = title.group(1).strip() if title else "D·Auto Saudi Arabia"
     page_desc = (desc.group(1) if desc else "").replace('"', "&quot;")
 
     head = head_block(name, spec, page_title, page_desc, rel, lang, body_attrs)
     mounts = mounts_block(rel, lang)
 
-    return f"""<!DOCTYPE html>
-<html lang="{lang}" dir="{dirattr}" class="preloader-mounted" data-demo-slug="hyundaiksa">
+    page = f"""<!DOCTYPE html>
+<html lang="{lang}" dir="{dirattr}" class="preloader-mounted" data-demo-slug="hyundaiksa" data-rel-root="{rel}" data-site-path="{site_path}">
 <head>
 {head}
 </head>
@@ -505,31 +851,27 @@ def build(name: str, spec: dict) -> str:
 </body>
 </html>
 """
+    return rebrand(page)
 
 
 def build_css():
-    """Copy the site's compiled CSS, pointing its font URLs at the committed
-    files. Only fonts live under /_next/static/media in these chunks."""
+    """Copy the site's compiled CSS with the proprietary typography removed:
+    the @font-face blocks that loaded licensed .otf files are dropped (the
+    demo's fonts.css supplies the open replacements), the metric-adjusted
+    local-Arial fallback faces stay, and every family/token name loses the
+    old marque."""
     outdir = ROOT / "assets" / "css" / "site"
     outdir.mkdir(parents=True, exist_ok=True)
-    renames = {
-        "GESSTwoMedium_ENNumbers-s.0uin9duiiya9_.otf": "GESSTwoMedium_ENNumbers.otf",
-        "GESSTwoMedium_ENNumbers-s.p.0uin9duiiya9_.otf": "GESSTwoMedium_ENNumbers.otf",
-        "HyundaiSansHead_Bold-s.p.05uap75rtvbhd.otf": "HyundaiSansHead_Bold.otf",
-        "HyundaiSansHead_Light-s.p.3qmu59-gs-29n.otf": "HyundaiSansHead_Light.otf",
-        "HyundaiSansHead_Light.3qmu59-gs-29n.otf": "HyundaiSansHead_Light.otf",
-        "HyundaiSansHead_Medium-s.p.43swq4rlfs0yk.otf": "HyundaiSansHead_Medium.otf",
-        "HyundaiSansHead_Regular-s.p.1wz0ync88eat7.otf": "HyundaiSansHead_Regular.otf",
-        "HyundaiSansHead_Regular.1wz0ync88eat7.otf": "HyundaiSansHead_Regular.otf",
-    }
     for chunk in CSS_CHUNKS:
         src = ROOT / "reference" / "css" / f"{chunk}.css"
         if not src.exists():
             print(f"  missing css chunk {chunk}")
             continue
         css = src.read_text(errors="ignore")
-        for old, new in renames.items():
-            css = css.replace(f"/_next/static/media/{old}", f"../../fonts/{new}")
+        css = re.sub(r"@font-face\s*\{[^}]*/_next/static/media/[^}]*\}", "", css)
+        css = css.replace("hyundai", "dauto").replace("Hyundai", "DAuto").replace("HYUNDAI", "DAUTO")
+        css = css.replace("GESSTwoMedium_ENNumbers", "DAutoArabic")
+        css = css.replace("tucson", "vanta").replace("tuscon", "vanta").replace("smartsense", "senseshield")
         css = re.sub(r"/\*# sourceMappingURL=[^*]+\*/", "", css)
         (outdir / f"{chunk}.css").write_text(css)
     print(f"css: {len(CSS_CHUNKS)} chunks written to assets/css/site/")

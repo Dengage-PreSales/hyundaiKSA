@@ -457,12 +457,12 @@
        creates a contact. */
     var CAPTURES_A_CONTACT = {
         'subscription-popup': true,
-        /* The two Hyundai one-off capture cards, fired under the hyundai_demo_
+        /* The two brand one-off capture cards, fired under the dauto_demo_
            prefix by js/panels.js. Both carry a data-dn-form-id form, so the
            engine reads the device record at submit time exactly as the shared
            subscription popup does, and the same sf_ key trap applies. */
         'arrival-alert': true,
-        'newsletter-hy': true
+        'newsletter-capture': true
     };
 
     /* GIVE A CAPTURE FORM A CONTACT KEY BEFORE IT CAN BE SUBMITTED, because if it
@@ -515,8 +515,8 @@
     }
 
     /* prefix is optional. The shared platform cards fire under scenarioPrefix
-       (dengage_demo_), which the shared panel campaigns listen for; the Hyundai
-       one-off cards pass the hyundaiPrefix (hyundai_demo_) so the two sets can
+       (dengage_demo_), which the shared panel campaigns listen for; the brand's
+       one-off cards pass the brandPrefix (dauto_demo_) so the two sets can
        never collide with each other or with any other demo on this origin. */
     function scenario(slug, prefix) {
         var dengageConfig = config().dengage || {};

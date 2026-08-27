@@ -1,13 +1,13 @@
--- Synthetic DMS seed for the Hyundai KSA remote-data showcase.
+-- Synthetic DMS seed for the D·Auto KSA remote-data showcase.
 --
--- Applied verbatim as migration hyundai_demo_dms_seed. Insert-only. Every
+-- Applied verbatim as migration dauto_demo_dms_seed. Insert-only. Every
 -- value is invented and announces itself as invented: DEMO- VINs, a 555
 -- mobile block, DPS- contact keys. setseed makes the generated block
 -- reproducible.
 --
 -- Eight presenter-typeable contacts come first, engineered so specific
 -- segment demos land:
---   DPS-1  Tucson owner in Jeddah, warranty expiring inside 60 days
+--   DPS-1  Vanta owner in Jeddah, warranty expiring inside 60 days
 --   DPS-2  Accent owner, service overdue by more than 6 months
 --   DPS-3  Palisade owner, high lifetime value
 --   DPS-4  Santa Fe owner, service due next month
@@ -17,14 +17,14 @@ insert into public.hy_customer_vehicle
    purchase_date, warranty_end, last_service_date, next_service_due,
    odometer_km, service_center, lifetime_value_sar)
 values
-  ('DPS-1', 'Fahad Al-Ghamdi',  '+96650555001', 'Jeddah',  'tucson',    'TUCSON',    'Premium',     'DEMOTUCSON00001', date '2021-10-10', date '2026-10-10', date '2026-03-02', date '2026-09-02', 96400, 'Jeddah - Madinah Road SC', 6200),
-  ('DPS-2', 'Noura Al-Harbi',   '+96653555002', 'Makkah',  'accent',    'ACCENT',    'Standard',    'DEMOACCENT00002', date '2022-05-18', date '2027-05-18', date '2025-11-09', date '2026-05-08', 78100, 'Makkah SC', 980),
-  ('DPS-3', 'Khalid Al-Otaibi', '+96654555003', 'Jeddah',  'palisade',  'PALISADE',  'Calligraphy', 'DEMOPALISA00003', date '2023-02-04', date '2028-02-04', date '2026-06-14', date '2026-12-11', 61200, 'Jeddah - Sari Street SC', 18400),
-  ('DPS-4', 'Reem Al-Zahrani',  '+96656555004', 'Madinah', 'santa-fe',  'SANTA FE',  'GL Premium',  'DEMOSANTAF00004', date '2024-07-21', date '2029-07-21', date '2026-03-23', date '2026-09-23', 38900, 'Madinah SC', 2600),
-  ('DPS-5', 'Turki Al-Mutairi', '+96651555005', 'Jeddah',  'elantra',   'ELANTRA',   'Standard',    'DEMOELANTR00005', date '2023-09-12', date '2028-09-12', date '2026-05-30', date '2026-11-26', 52300, 'Jeddah - Madinah Road SC', 1400),
-  ('DPS-6', 'Sara Bukhari',     '+96650555006', 'Taif',    'creta',     'CRETA',     'Standard',    'DEMOCRETA000006', date '2025-01-08', date '2030-01-08', date '2026-07-04', date '2027-01-01', 21800, 'Taif SC', 420),
-  ('DPS-7', 'Majed Al-Shehri',  '+96653555007', 'Tabuk',   'sonata',    'SONATA',    'Standard',    'DEMOSONATA00007', date '2020-12-02', date '2025-12-02', date '2026-01-19', date '2026-07-18', 131500, 'Tabuk SC', 5200),
-  ('DPS-8', 'Lama Al-Amri',     '+96656555008', 'Jeddah',  'venue',     'VENUE',     'Standard',    'DEMOVENUE000008', date '2025-06-15', date '2030-06-15', date '2026-08-02', date '2027-01-29', 9800,  'Jeddah - Sari Street SC', 0);
+  ('DPS-1', 'Fahad Al-Ghamdi',  '+96650555001', 'Jeddah',  'vanta',    'VANTA',    'Premium',     'DEMOVANTA00001', date '2021-10-10', date '2026-10-10', date '2026-03-02', date '2026-09-02', 96400, 'Jeddah - Madinah Road SC', 6200),
+  ('DPS-2', 'Noura Al-Harbi',   '+96653555002', 'Makkah',  'pulse',    'PULSE',    'Standard',    'DEMOPULSE00002', date '2022-05-18', date '2027-05-18', date '2025-11-09', date '2026-05-08', 78100, 'Makkah SC', 980),
+  ('DPS-3', 'Khalid Al-Otaibi', '+96654555003', 'Jeddah',  'summit',  'SUMMIT',  'Signature', 'DEMOPALISA00003', date '2023-02-04', date '2028-02-04', date '2026-06-14', date '2026-12-11', 61200, 'Jeddah - Sari Street SC', 18400),
+  ('DPS-4', 'Reem Al-Zahrani',  '+96656555004', 'Madinah', 'ridge',  'RIDGE',  'GL Premium',  'DEMOSANTAF00004', date '2024-07-21', date '2029-07-21', date '2026-03-23', date '2026-09-23', 38900, 'Madinah SC', 2600),
+  ('DPS-5', 'Turki Al-Mutairi', '+96651555005', 'Jeddah',  'vector',   'VECTOR',   'Standard',    'DEMOELANTR00005', date '2023-09-12', date '2028-09-12', date '2026-05-30', date '2026-11-26', 52300, 'Jeddah - Madinah Road SC', 1400),
+  ('DPS-6', 'Sara Bukhari',     '+96650555006', 'Taif',    'terra',     'TERRA',     'Standard',    'DEMOTERRA000006', date '2025-01-08', date '2030-01-08', date '2026-07-04', date '2027-01-01', 21800, 'Taif SC', 420),
+  ('DPS-7', 'Majed Al-Shehri',  '+96653555007', 'Tabuk',   'serene',    'SERENE',    'Standard',    'DEMOSERENE00007', date '2020-12-02', date '2025-12-02', date '2026-01-19', date '2026-07-18', 131500, 'Tabuk SC', 5200),
+  ('DPS-8', 'Lama Al-Amri',     '+96656555008', 'Jeddah',  'urban',     'URBAN',     'Standard',    'DEMOURBAN000008', date '2025-06-15', date '2030-06-15', date '2026-08-02', date '2027-01-29', 9800,  'Jeddah - Sari Street SC', 0);
 
 -- 292 generated owners on top of the eight engineered ones. random() is
 -- called in the select list of a CTE so it is evaluated PER ROW: the first
@@ -49,11 +49,11 @@ with base as (
       when r_city < 0.86 then 'Tabuk' when r_city < 0.91 then 'Yanbu'
       when r_city < 0.96 then 'Abha' else 'Khamis Mushait' end as city,
     case
-      when r_model < 0.22 then 'accent' when r_model < 0.40 then 'tucson'
-      when r_model < 0.54 then 'elantra' when r_model < 0.64 then 'creta'
-      when r_model < 0.73 then 'santa-fe' when r_model < 0.81 then 'sonata'
-      when r_model < 0.87 then 'palisade' when r_model < 0.92 then 'venue'
-      when r_model < 0.96 then 'grandi10' else 'stargazer' end as model_id,
+      when r_model < 0.22 then 'pulse' when r_model < 0.40 then 'vanta'
+      when r_model < 0.54 then 'vector' when r_model < 0.64 then 'terra'
+      when r_model < 0.73 then 'ridge' when r_model < 0.81 then 'serene'
+      when r_model < 0.87 then 'summit' when r_model < 0.92 then 'urban'
+      when r_model < 0.96 then 'neo' else 'nova' end as model_id,
     r_trim, r_first, r_last_name, r_prefix, r_odo, r_ltv, r_center
   from base
 )
@@ -75,15 +75,15 @@ select
   city,
   model_id,
   case model_id
-    when 'accent' then 'ACCENT' when 'tucson' then 'TUCSON'
-    when 'elantra' then 'ELANTRA' when 'creta' then 'CRETA'
-    when 'santa-fe' then 'SANTA FE' when 'sonata' then 'SONATA'
-    when 'palisade' then 'PALISADE' when 'venue' then 'VENUE'
-    when 'grandi10' then 'GRAND i10' else 'STARGAZER' end,
-  case when model_id = 'tucson'
-       then (array['Smart','Comfort','Premium','N Line'])[1 + floor(r_trim * 4)::int]
-       when model_id = 'santa-fe'
-       then (array['GL Smart','GL Comfort','GL Premium','Calligraphy'])[1 + floor(r_trim * 4)::int]
+    when 'pulse' then 'PULSE' when 'vanta' then 'VANTA'
+    when 'vector' then 'VECTOR' when 'terra' then 'TERRA'
+    when 'ridge' then 'RIDGE' when 'serene' then 'SERENE'
+    when 'summit' then 'SUMMIT' when 'urban' then 'URBAN'
+    when 'neo' then 'NEO' else 'NOVA' end,
+  case when model_id = 'vanta'
+       then (array['Smart','Comfort','Premium','R-Spec'])[1 + floor(r_trim * 4)::int]
+       when model_id = 'ridge'
+       then (array['GL Smart','GL Comfort','GL Premium','Signature'])[1 + floor(r_trim * 4)::int]
        else 'Standard' end,
   'DEMO' || upper(replace(model_id, '-', '')) || lpad((n + 100)::text, 5, '0'),
   purchase_date,
@@ -120,13 +120,13 @@ where purchase_date + (k * (150 + floor(r_gap * 110))::int) < date '2026-08-26'
   and r_gap > (k - 1) * 0.18;
 
 insert into public.hy_branch (name, city, branch_type, lat, lng) values
-  ('Hyundai Showroom - Madinah Road',           'Jeddah',  'showroom',      21.5433, 39.1728),
-  ('Hyundai Showroom - Sari Street',            'Jeddah',  'showroom',      21.5810, 39.1620),
-  ('Hyundai Service Center - Industrial Area',  'Jeddah',  'service',       21.4460, 39.2410),
-  ('Hyundai Showroom - Makkah',                 'Makkah',  'showroom',      21.3891, 39.8579),
-  ('Hyundai Service Center - Makkah',           'Makkah',  'service',       21.4010, 39.8300),
-  ('Hyundai Showroom - Madinah',                'Madinah', 'showroom',      24.4686, 39.6142),
-  ('Hyundai Showroom - Taif',                   'Taif',    'showroom',      21.2854, 40.4211),
-  ('Hyundai Showroom - Tabuk',                  'Tabuk',   'showroom',      28.3835, 36.5662),
-  ('Hyundai Showroom - Abha',                   'Abha',    'showroom',      18.2465, 42.5117),
-  ('Hyundai Quick Service - Yanbu',             'Yanbu',   'quick_service', 24.0895, 38.0618);
+  ('D·Auto Showroom - Madinah Road',           'Jeddah',  'showroom',      21.5433, 39.1728),
+  ('D·Auto Showroom - Sari Street',            'Jeddah',  'showroom',      21.5810, 39.1620),
+  ('D·Auto Service Center - Industrial Area',  'Jeddah',  'service',       21.4460, 39.2410),
+  ('D·Auto Showroom - Makkah',                 'Makkah',  'showroom',      21.3891, 39.8579),
+  ('D·Auto Service Center - Makkah',           'Makkah',  'service',       21.4010, 39.8300),
+  ('D·Auto Showroom - Madinah',                'Madinah', 'showroom',      24.4686, 39.6142),
+  ('D·Auto Showroom - Taif',                   'Taif',    'showroom',      21.2854, 40.4211),
+  ('D·Auto Showroom - Tabuk',                  'Tabuk',   'showroom',      28.3835, 36.5662),
+  ('D·Auto Showroom - Abha',                   'Abha',    'showroom',      18.2465, 42.5117),
+  ('D·Auto Quick Service - Yanbu',             'Yanbu',   'quick_service', 24.0895, 38.0618);

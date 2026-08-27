@@ -1,5 +1,5 @@
 /* ============================================================================
-   The Dengage demo controls, skinned for the Hyundai replica. Everything is
+   The Dengage demo controls, skinned for the D·Auto demo site. Everything is
    namespaced (dps-*, or under an id this stylesheet owns) so nothing collides
    with the site's own utility classes. Logical properties throughout, so the
    same rules mirror correctly under dir="rtl".
@@ -16,8 +16,8 @@
   --hy-tint: #eef3f8;
   --dps-shadow: 0 12px 32px rgba(0, 0, 0, .18);
   --dps-radius: 6px;
-  --dps-font: 'HyundaiRegular', Arial, sans-serif;
-  --dps-font-medium: 'HyundaiMedium', Arial, sans-serif;
+  --dps-font: 'Outfit', Arial, sans-serif;
+  --dps-font-medium: 'Outfit', Arial, sans-serif;
 }
 
 html.dps-locked { overflow: hidden; }
@@ -197,7 +197,7 @@ html.dps-locked { overflow: hidden; }
   font-family: ui-monospace, monospace;
   overflow-wrap: anywhere;
 }
-.scenario.hyundai { border-inline-start: 3px solid var(--hy-blue); }
+.scenario.brand { border-inline-start: 3px solid var(--hy-blue); }
 .scenario.gesture, .scenario.elsewhere { opacity: .72; }
 .scenario.gesture .slug, .scenario.elsewhere .slug { font-family: var(--dps-font); }
 .scenario.action { border-inline-start: 3px solid var(--hy-red); }
