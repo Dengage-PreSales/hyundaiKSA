@@ -253,6 +253,10 @@ def backfill_hero_images(t: str, hero_list) -> str:
 
 
 def rewrite_links(t: str, rel: str) -> str:
+    """Every internal link resolves: to the replica's own page when it is
+    built, and to the SAME page on the live property, in a new tab, when it
+    is not. The demonstration-site contract is that nothing on screen is a
+    dead placeholder."""
     def fix(match):
         href = match.group(1)
         if href.startswith(("http", "tel:", "mailto:", "#", "javascript:")):
@@ -261,7 +265,8 @@ def rewrite_links(t: str, rel: str) -> str:
         if mapped is None:
             return match.group(0)
         if mapped == "DEAD":
-            return 'href="#" data-demo-dead="1"'
+            return ('href="https://hyundaiksa.com' + href +
+                    '" target="_blank" rel="noopener"')
         return 'href="' + mapped + '"'
     return re.sub(r'href="([^"]*)"', fix, t)
 

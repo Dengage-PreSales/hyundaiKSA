@@ -529,24 +529,270 @@
                 encodeURIComponent(name + ' Hyundai Jeddah'), '_blank', 'noopener');
         });
 
-        /* The branch cards collapse their detail on the live site; a header
-           click opens whichever collapsed block the card is hiding. */
+        /* A branch card click focuses that branch: the map card names it and
+           comes into view. The card's chevron rides the same behaviour. */
         document.addEventListener('click', function (event) {
             var head = event.target.closest ? event.target.closest('.showroom_header_text') : null;
+            if (!head) {
+                var row = event.target.closest ? event.target.closest('[class*="showroom"]') : null;
+                head = row && row.querySelector ? row.querySelector('.showroom_header_text') : null;
+            }
             if (!head) return;
-            var card = head.parentElement;
-            for (var k = 0; k < 3 && card && card.parentElement; k++) {
-                var folded = $$('*', card).filter(function (el) {
-                    return el.scrollHeight - el.clientHeight > 24 && el.clientHeight < 12;
-                })[0];
-                if (folded) {
-                    var open = folded.getAttribute('data-dps-open') === '1';
-                    folded.style.height = open ? '0px' : folded.scrollHeight + 'px';
-                    folded.style.transition = 'height .25s ease';
-                    folded.setAttribute('data-dps-open', open ? '0' : '1');
+            setMapName(head.textContent.trim());
+            var map = $('.showroom_map');
+            if (map) map.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        });
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* The demonstration-site contract: everything visible is real. Every
+       control below either performs its action here, or opens the SAME
+       content on the live property in a new tab. Nothing on screen is a
+       dead placeholder.                                                   */
+
+    function liveSite(pathname) {
+        window.open('https://hyundaiksa.com' + pathname, '_blank', 'noopener');
+    }
+
+    function twinLanguageUrl() {
+        if (document.body.hasAttribute('data-gateway')) {
+            var pre = sitePrefix();
+            return langCode() === 'ar' ? pre + 'en/index.html' : pre + 'index.html';
+        }
+        var p = location.pathname;
+        if (p.indexOf('/en/') !== -1) return p.replace('/en/', '/ar/');
+        if (p.indexOf('/ar/') !== -1) return p.replace('/ar/', '/en/');
+        return p;
+    }
+
+    var lightSet = [], lightAt = 0;
+    function stepLightbox(d) {
+        if (!lightSet.length) return;
+        lightAt = (lightAt + d + lightSet.length) % lightSet.length;
+        var lb = $('#dps-lightbox');
+        if (lb) lb.querySelector('img').src = lightSet[lightAt];
+    }
+    function openLightbox(set, at) {
+        if (!set.length) return;
+        lightSet = set;
+        lightAt = Math.max(0, at);
+        var lb = $('#dps-lightbox');
+        if (!lb) {
+            lb = document.createElement('div');
+            lb.id = 'dps-lightbox';
+            lb.innerHTML = '<button type="button" class="lb-x" aria-label="Close">&times;</button>' +
+                '<button type="button" class="lb-prev" aria-label="Previous">&#8249;</button>' +
+                '<img alt="">' +
+                '<button type="button" class="lb-next" aria-label="Next">&#8250;</button>';
+            document.body.appendChild(lb);
+            lb.addEventListener('click', function (e) {
+                if (e.target === lb || e.target.classList.contains('lb-x')) lb.classList.remove('open');
+                else if (e.target.classList.contains('lb-prev')) stepLightbox(-1);
+                else if (e.target.classList.contains('lb-next')) stepLightbox(1);
+            });
+            document.addEventListener('keydown', function (e) {
+                if (!lb.classList.contains('open')) return;
+                if (e.key === 'Escape') lb.classList.remove('open');
+                if (e.key === 'ArrowRight') stepLightbox(1);
+                if (e.key === 'ArrowLeft') stepLightbox(-1);
+            });
+        }
+        stepLightbox(0);
+        lb.classList.add('open');
+    }
+    function sectionImages(el) {
+        var scope = el.closest('section') || el.closest('main') || document;
+        var seen = [];
+        $$('img', scope).forEach(function (i) {
+            var s = i.currentSrc || i.src;
+            if (s && i.naturalWidth > 40 && seen.indexOf(s) === -1) seen.push(s);
+        });
+        return seen;
+    }
+
+    function wireUniversalCtas() {
+        var lang = langCode();
+        var pre = sitePrefix();
+        var tenant = pre + lang + '/mynaghi/';
+        var isHome = document.body.getAttribute('data-page-type') === 'home';
+
+        /* Language switcher is a button on this build. */
+        $$('.lang_switcher').forEach(function (el) {
+            if (el.__dps) return; el.__dps = true; if (el.setAttribute) el.setAttribute('data-dps-wired', '1');
+            el.addEventListener('click', function () { location.href = twinLanguageUrl(); });
+        });
+
+        /* Login opens the property's real sign-in. */
+        $$('.profile_button').forEach(function (el) {
+            if (el.__dps) return; el.__dps = true; if (el.setAttribute) el.setAttribute('data-dps-wired', '1');
+            el.removeAttribute('data-demo-dead');
+            el.addEventListener('click', function (e) {
+                e.preventDefault();
+                liveSite('/' + lang + '/mynaghi/login');
+            });
+        });
+
+        /* A hero slide's Explore goes to that slide's own model page. */
+        $$('.swiper-slide').forEach(function (slide) {
+            var btn = slide.querySelector('button[aria-label="Explore"], button[aria-label="اكتشف"], button[aria-label="استكشف"]');
+            if (!btn || btn.__dps) return;
+            btn.__dps = true; if (btn.setAttribute) btn.setAttribute('data-dps-wired', '1');
+            btn.addEventListener('click', function () {
+                var txt = (slide.textContent || '').toUpperCase();
+                var model = null;
+                window.Catalog.all().forEach(function (c) {
+                    if (!model && (txt.indexOf(c.nameEn.toUpperCase()) !== -1 || txt.indexOf(c.nameAr) !== -1)) model = c;
+                });
+                if (model) { location.href = tenant + 'models/' + model.path + '/index.html'; return; }
+                var grid = $('#dn_inline_target_in_grid');
+                if (grid) grid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                else location.href = tenant + 'index.html';
+            });
+        });
+
+        /* The services cards on the home page. */
+        if (isHome) {
+            [['Call Center', 'مركز الاتصال', function () { location.href = 'tel:8001240191'; }],
+             ['After Sales Network', 'شبكة ما بعد البيع', function () { location.href = tenant + 'service-booking/index.html'; }],
+             ['Service Booking', 'حجز الصيانة', function () { location.href = tenant + 'service-booking/index.html'; }]
+            ].forEach(function (row) {
+                $$('h1,h2,h3,h4,h5,p').forEach(function (h) {
+                    var t2 = h.textContent.trim();
+                    if (t2 !== row[0] && t2 !== row[1]) return;
+                    var card = h.closest('div');
+                    for (var k = 0; k < 2 && card && !card.querySelector('img,svg'); k++) card = card.parentElement;
+                    if (!card || card.__dps) return;
+                    card.__dps = true; if (card.setAttribute) card.setAttribute('data-dps-wired', '1');
+                    card.style.cursor = 'pointer';
+                    card.addEventListener('click', row[2]);
+                });
+            });
+        }
+
+        /* Trim comparison scrolls to the trims block. */
+        function trimsBlock() {
+            var head = $$('h1,h2,h3,h4').filter(function (h) {
+                return /trim|الفئة|فئة/i.test(h.textContent);
+            })[0];
+            return head || $('#dn_inline_target_pdp_below_price');
+        }
+
+        /* Text-routed CTAs: prefer the nearest real link in the same card,
+           fall back to the closest sensible page. */
+        function nearestHref(el) {
+            var n = el, hops = 0;
+            while (n && n !== document.body && hops < 4) {
+                if (n.tagName === 'A' && n.getAttribute('href') && n.getAttribute('href') !== '#') return n;
+                var a2 = n.querySelector && n.querySelector('a[href]:not([href^="#"])');
+                if (a2 && a2 !== el) return a2;
+                n = n.parentElement; hops++;
+            }
+            return null;
+        }
+        var CTA = [
+            [/^(learn more|know more|اعرف المزيد|تعرف على المزيد)$/i, function (b) {
+                var a = nearestHref(b);
+                if (a) { a.click(); return; }
+                location.href = tenant + 'service-booking/index.html';
+            }],
+            [/^(view details|offer details|تفاصيل العرض|عرض التفاصيل)$/i, function (b) {
+                var a = nearestHref(b);
+                if (a) { a.click(); return; }
+                location.href = tenant + 'offers/index.html';
+            }],
+            [/^(read more|اقرأ المزيد)$/i, function (b) {
+                var a = nearestHref(b);
+                if (a) { a.click(); return; }
+                liveSite('/' + lang + '/mynaghi');
+            }],
+            [/^(e-brochure|كتيب إلكتروني)$/i, function () {
+                liveSite('/' + lang + '/mynaghi/offers/backtoschool');
+            }],
+            [/^(explore more|أكتشف أكثر|اكتشف أكثر)$/i, function () {
+                var grid = $('#dn_inline_target_in_grid');
+                if (grid) grid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                else location.href = tenant + 'index.html';
+            }],
+            [/^(compare trims|مقارنة العناصر|trim details|تفاصيل الفئة)$/i, function () {
+                var t3 = trimsBlock();
+                if (t3) t3.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }]
+        ];
+        $$('main button, main [role="button"]').forEach(function (b) {
+            if (b.__dps) return;
+            var t2 = b.textContent.trim();
+            var aria = (b.getAttribute('aria-label') || '').trim();
+            for (var i = 0; i < CTA.length; i++) {
+                if (CTA[i][0].test(t2) || CTA[i][0].test(aria)) {
+                    b.__dps = true; if (b.setAttribute) b.setAttribute('data-dps-wired', '1');
+                    var act = CTA[i][1];
+                    b.addEventListener('click', function (e) { e.preventDefault(); act(b); });
+                    break;
+                }
+            }
+        });
+
+        /* The exterior/interior switch: the interior media set is mounted on
+           demand on the live property and is not in a static capture, so the
+           section keeps a single plain heading instead of a broken toggle. */
+        $$('button').forEach(function (b) {
+            var t2 = b.textContent.trim();
+            if (/^(Interior|التصميم الداخلي)$/.test(t2)) b.style.display = 'none';
+            if (/^(Exterior|التصميم الخارجي)$/.test(t2)) {
+                b.style.pointerEvents = 'none';
+                b.setAttribute('tabindex', '-1');
+            }
+        });
+
+        /* Campaign detail folds (Terms, Disclaimer): open their own block. */
+        $$('main button').forEach(function (b) {
+            var t2 = b.textContent.trim();
+            if (!/^(Terms & Conditions|Disclaimer|الشروط والأحكام|التوضيح|إخلاء المسؤولية)$/.test(t2) || b.__dps) return;
+            var box = (b.parentElement && b.parentElement.nextElementSibling) || b.nextElementSibling;
+            if (!box || !box.textContent.trim()) { b.style.display = 'none'; return; }
+            b.__dps = true; if (b.setAttribute) b.setAttribute('data-dps-wired', '1');
+            if (box.clientHeight > 4) { box.style.overflow = 'hidden'; box.style.height = '0px'; }
+            b.addEventListener('click', function () {
+                var open = box.clientHeight > 4;
+                box.style.transition = 'height .25s ease';
+                box.style.overflow = 'hidden';
+                box.style.height = open ? '0px' : box.scrollHeight + 'px';
+            });
+        });
+    }
+
+    function wireGallery() {
+        document.addEventListener('click', function (e) {
+            var b = e.target.closest ? e.target.closest('button') : null;
+            if (!b) return;
+            var aria = b.getAttribute('aria-label') || '';
+            if (/gallery image|صورة المعرض/i.test(aria) ||
+                (b.querySelector('img') && /flex-shrink-0/.test(b.className) && b.closest('[class*="allery"]'))) {
+                var img = b.querySelector('img');
+                var set = sectionImages(b);
+                openLightbox(set, Math.max(0, set.indexOf(img ? (img.currentSrc || img.src) : '')));
+                return;
+            }
+            if (/fullscreen|ملء الشاشة/i.test(aria) || /fullscreen_btn/.test(b.className)) {
+                var scope = b.closest('section') || document;
+                var vis = $$('.swiper-slide', scope).filter(function (s) { return s.style.opacity !== '0'; })[0];
+                var im = vis && vis.querySelector('img');
+                var set2 = sectionImages(b);
+                openLightbox(set2, Math.max(0, set2.indexOf(im ? (im.currentSrc || im.src) : '')));
+                return;
+            }
+            if (/^(Next|Previous) Image$/i.test(aria) || /الصورة (التالية|السابقة)/.test(aria)) {
+                var dir = /Next|التالية/.test(aria) ? 1 : -1;
+                var lb = $('#dps-lightbox');
+                if (lb && lb.classList.contains('open')) { stepLightbox(dir); return; }
+                var sec = b.closest('section') || document;
+                var sw = sec.querySelector('.swiper');
+                if (sw && sw.__dpsCarousel) {
+                    if (dir === 1) { sw.__dpsCarousel.next(); } else { sw.__dpsCarousel.prev(); }
                     return;
                 }
-                card = card.parentElement;
+                var rail = sec.querySelector('.dps-rail, [class*="overflow-x"]');
+                if (rail) rail.scrollBy({ left: dir * 320, behavior: 'smooth' });
             }
         });
     }
@@ -662,7 +908,8 @@
 
         var pre = sitePrefix();
         var lang = langCode();
-        var inquiryLabels = ['Inquire Now', 'Buy Now', 'اطلبه الآن', 'اشتره الآن', 'اشترِ الآن'];
+        var inquiryLabels = ['Inquire Now', 'Buy Now', 'Order Now',
+                             'اطلبه الآن', 'اشتره الآن', 'اشترِ الآن', 'استفسر الآن'];
         $$('main button').forEach(function (btn) {
             var name = (btn.getAttribute('aria-label') || btn.textContent || '').trim();
             if (inquiryLabels.indexOf(name) === -1) return;
@@ -707,7 +954,7 @@
         var img = document.createElement('img');
         img.src = sitePrefix() + 'assets/img/cdn/cmssection/23079/service-booking.webp';
         img.alt = '';
-        img.style.cssText = 'width:100%;max-width:640px;border-radius:8px;margin-top:28px;display:block;';
+        img.style.cssText = 'width:560px;max-width:92%;height:auto;border-radius:8px;margin-top:28px;display:block;';
         col.appendChild(img);
     }
 
@@ -984,6 +1231,8 @@
         answerThemeRequests();
         wireOverlays();
         wireHeaderMenus();
+        wireUniversalCtas();
+        wireGallery();
         dressModelCards();
         wireFunnelButtons();
         wireCarousels();
