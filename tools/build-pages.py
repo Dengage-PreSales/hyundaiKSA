@@ -72,6 +72,9 @@ for _stem, (_slug, _live, _price, _cat) in MODEL_SRC.items():
         if _price:
             _spec["price"] = _price
         PAGES[f"{_stem}.{_lang}"] = _spec
+for _lang in ("en", "ar"):
+    PAGES[f"company.{_lang}"] = {"out": LANGDIR[_lang] + "company/index.html",
+                                 "type": "other", "synthetic": "company"}
 
 # Captured-property routes -> site-relative output templates. Every href the
 # captures carry resolves inside this demo; a fictitious brand has no live
@@ -79,7 +82,7 @@ for _stem, (_slug, _live, _price, _cat) in MODEL_SRC.items():
 ROUTES = {
     "": "{langdir}index.html",
     "/mynaghi": "{langdir}index.html",
-    "/mynaghi/models": "{langdir}index.html",
+    "/mynaghi/models": "{langdir}index.html#models",
     "/mynaghi/offers": "{langdir}offers/index.html",
     "/mynaghi/offers/backtoschool": "{langdir}offers/back-to-school/index.html",
     "/mynaghi/service-booking": "{langdir}service-booking/index.html",
@@ -90,47 +93,91 @@ for _stem, (_slug, _live, _price, _cat) in MODEL_SRC.items():
         ROUTES[f"/mynaghi/models/{_key}"] = "{langdir}models/" + _slug + "/index.html"
 
 # Pages the property has and this demo deliberately does not: each maps to
-# the demo page that carries the same intent.
+# the demo destination that carries the same intent — its own page, or its
+# own anchored section of one. No two different intents share a bare page.
 ALIAS = {
-    "about-mynaghi": "index.html",
-    "innovation": "index.html",
-    "yourperfectpartner": "index.html",
-    "after-sales-network": "service-booking/index.html",
-    "maintenance": "service-booking/index.html",
-    "parts-and-accessories": "service-booking/index.html",
-    "warranty": "service-booking/index.html",
-    "bluelink": "service-booking/index.html",
-    "hyundai-service": "service-booking/index.html",
-    "aftersales-offers": "offers/index.html",
-    "career": "contact-us/index.html",
-    "cookies": "contact-us/index.html",
-    "find-us": "contact-us/index.html",
-    "fleet": "contact-us/index.html",
-    "legal-terms": "contact-us/index.html",
+    "about-mynaghi": "company/index.html#about",
+    "innovation": "company/index.html#innovation",
+    "career": "company/index.html#careers",
+    "fleet": "company/index.html#fleet",
+    "privacy-policy": "company/index.html#privacy",
+    "legal-terms": "company/index.html#terms",
+    "terms-conditions": "company/index.html#terms",
+    "terms-of-use": "company/index.html#terms",
+    "cookies": "company/index.html#cookies",
+    "yourperfectpartner": "service-booking/index.html#aftercare",
+    "hyundai-service": "service-booking/index.html#promise",
+    "after-sales-network": "service-booking/index.html#network",
+    "maintenance": "service-booking/index.html#maintenance",
+    "parts-and-accessories": "service-booking/index.html#parts",
+    "warranty": "service-booking/index.html#warranty",
+    "bluelink": "service-booking/index.html#connect",
+    "aftersales-offers": "offers/index.html#aftersales",
+    "find-us": "index.html#dealers",
     "login": "contact-us/index.html",
-    "privacy-policy": "contact-us/index.html",
-    "terms-conditions": "contact-us/index.html",
-    "terms-of-use": "contact-us/index.html",
 }
 
 # ---------------------------------------------------------------------------
-# The D·Auto brand-asset system
+# The D·Auto imagery system: real photography, committed under assets/photo/.
+# Every file is an Unsplash photograph (Unsplash License: free to download,
+# copy, modify and distribute), fetched at build-prep time and verified by
+# eye; filenames keep the Unsplash photo id for provenance. The README
+# carries the credit list.
 
-SCENES = [f"scene-{b}-{i}.svg" for b in ("sedan", "suv", "van") for i in (1, 2, 3, 4)]
-PANELS = [f"panel-{i}.svg" for i in (1, 2, 3, 4)]
+PHOTO = {
+    # heroes and general scenery
+    "hero-desert-road": "1653491493226.jpg",   # white SUV on a desert highway
+    "hero-sunset-road": "1568605117036.jpg",   # car on a winding road at sunset
+    "hero-dunes-aerial": "1763535834153.jpg",  # carving down a dune, aerial
+    "hero-night-motion": "1503376780353.jpg",  # dark coupe in motion at night
+    "hero-dusk-desert": "1552519507.jpg",      # teal coupe in the desert at dusk
+    # per-model signatures
+    "pulse": "1502877338535.jpg",              # blue coupe on a city street
+    "sovereign": "1616422285623.jpg",          # white grand tourer in the mountains
+    "vector": "1555215695.jpg",                # white sports sedan under palms
+    "neo": "1739738709610.jpg",                # red city hatch, motion pan
+    "serene": "1493238792000.jpg",             # sedan rear in golden city light
+    "terra": "1637189300412.jpg",              # off-roader on a red dune
+    "terra-max": "1519641471654.jpg",          # family crossover, icy fjord
+    "apex": "1600661653561.jpg",               # white crossover in the desert
+    "summit": "1533473359331.jpg",             # full-size SUV in red-rock country
+    "ridge": "1523996183508.jpg",              # SUV on the dunes at dusk
+    "vanta": "1653491493226.jpg",              # the flagship shares the hero shot
+    "urban": "1549399542.jpg",                 # compact sport model under palms
+    "nova": "1568605117036.jpg",               # family roadtrip at sunset
+    "voyager-premium": "1623371857133.jpg",    # silver MPV at dusk
+    "voyager-van": "1548379269.jpg",           # utility van on the dunes
+    "voyager": "1623371857133.jpg",
+    # roles
+    "service": "1487754180451.jpg",            # technician topping up an engine
+    "fleet": "1543465077.jpg",                 # aerial car park
+    "interior": "1449965408869.jpg",           # hands on the wheel, city bokeh
+    "night-tech": "1533106418989.jpg",         # glowing headlights in the dark
+    "showroom-light": "1518987048.jpg",        # showroom in magenta light
+    "city-rain": "1471479917193.jpg",          # rainy city street, car rear
+    "performance": "1494976388531.jpg",        # dark muscle car, storm sky
+    "interchange": "1465447142348.jpg",        # aerial highway interchange
+}
+
+
+def photo(role: str) -> str:
+    return "assets/photo/" + PHOTO[role]
+
+
+POOLS = {
+    "sedan": ["pulse", "sovereign", "vector", "serene", "performance", "interior"],
+    "suv": ["terra", "ridge", "vanta", "summit", "apex", "hero-dunes-aerial", "interior"],
+    "van": ["voyager-premium", "voyager-van", "terra-max", "interior"],
+    "generic": ["hero-desert-road", "hero-sunset-road", "hero-dusk-desert",
+                "city-rain", "showroom-light", "interior", "hero-night-motion"],
+}
 BODY_OF = {"Sedan": "sedan", "SUV": "suv", "MPV": "van"}
 
-# Mirrors the ART map in js/vehicles.js: each model's signature scene.
-ART = {
-    "pulse": "scene-sedan-1.svg", "sovereign": "scene-sedan-2.svg",
-    "vector": "scene-sedan-3.svg", "neo": "scene-sedan-4.svg",
-    "serene": "scene-sedan-1.svg", "terra": "scene-suv-1.svg",
-    "terra-max": "scene-suv-2.svg", "apex": "scene-suv-3.svg",
-    "summit": "scene-suv-4.svg", "ridge": "scene-suv-1.svg",
-    "vanta": "scene-suv-2.svg", "urban": "scene-suv-3.svg",
-    "nova": "scene-van-1.svg", "voyager-premium": "scene-van-2.svg",
-    "voyager-van": "scene-van-3.svg", "voyager": "scene-van-4.svg",
-}
+# Mirrors the ART map in js/vehicles.js: each model's signature photograph.
+ART = {m: PHOTO[m] for m in (
+    "pulse", "sovereign", "vector", "neo", "serene", "terra", "terra-max",
+    "apex", "summit", "ridge", "vanta", "urban", "nova", "voyager-premium",
+    "voyager-van", "voyager")}
 
 HEADER_LOGO_SVG = ('<svg xmlns="http://www.w3.org/2000/svg" width="125" height="16" '
                    'viewBox="0 0 125 16" fill="none" aria-label="D&#183;AUTO">'
@@ -142,17 +189,23 @@ FOOTER_LOGO_SVG = ('<svg xmlns="http://www.w3.org/2000/svg" width="140" height="
                    'font-weight="800" letter-spacing="3.4" fill="#ffffff">D&#183;AUTO</text></svg>')
 
 
-def brand_asset(path: str, spec: dict) -> str:
-    """A deterministic brand tile for any captured photograph: product pages
-    draw from their own body style's scene set so a model's gallery reads as
-    one family; everything else cycles the whole system."""
-    h = int(hashlib.md5(path.encode("utf-8")).hexdigest(), 16)
+def brand_asset(path: str, spec: dict, state: dict) -> str:
+    """A deterministic replacement photograph for any captured image. A model
+    page draws from its own body style's photo pool (its signature shot
+    first), hashed by the original path so a repeated source image maps to a
+    repeated photo. Everywhere else the scenery set is dealt out in order,
+    one per distinct source image, so neighbouring sections never show the
+    same photograph twice."""
     if spec.get("product"):
+        h = int(hashlib.md5(path.encode("utf-8")).hexdigest(), 16)
         body = BODY_OF.get(spec.get("cat", "SUV"), "suv")
-        pool = [f"scene-{body}-{i}.svg" for i in (1, 2, 3, 4)] + PANELS
-    else:
-        pool = SCENES + PANELS
-    return "assets/brand/" + pool[h % len(pool)]
+        pool = [spec["product"]] + POOLS[body]
+        return photo(pool[h % len(pool)])
+    pool = POOLS["generic"]
+    if path not in state:
+        state[path] = state.get("__next", 0)
+        state["__next"] = state[path] + 1
+    return photo(pool[state[path] % len(pool)])
 
 
 # ---------------------------------------------------------------------------
@@ -306,6 +359,8 @@ CLEANUP = [
 # matching. None of these tokens collides with the load-bearing demo slug
 # (data-demo-slug="hyundaiksa"), which is an internal namespace, not content.
 LITERAL_SWAPS = [
+    ("customer.care@hyundai.mynaghi.com", "care@d-auto.example"),
+    ("@hyundai.mynaghi.com", "@d-auto.example"),
     ("+9668001240191", "+9668001002000"),
     ("9668001240191", "9668001002000"),
     ("8001240191", "8001002000"),
@@ -466,8 +521,9 @@ def rewrite_assets(t: str, rel: str, spec: dict) -> str:
     # stays in the path — but &quot;/&amp; entities terminate it, so an
     # inline-style url(&quot;...&quot;) still ends before the entity. Query
     # strings are the second group and are dropped.
+    state = {}
     t = re.sub(CDN_PREFIX + r"((?:[^\s\"'<>?&]|&(?!quot;|amp;))+)(\?[^\s\"'<>]*)?",
-               lambda m: rel + brand_asset(m.group(1), spec), t)
+               lambda m: rel + brand_asset(m.group(1), spec, state), t)
     # Whatever still points at their _next tree cannot resolve here.
     t = re.sub(r"/_next/image\?url=([^\s\"'&]+)[^\s\"']*", r"\1", t)
     # The handful of images served from the site root rather than the CDN,
@@ -568,8 +624,8 @@ def backfill_hero_images(t: str, hero_list) -> str:
 
 
 def force_hero_scene(t: str, rel: str, slug: str) -> str:
-    """A model page's first hero slide shows that model's own signature scene,
-    whatever photograph the capture happened to freeze there."""
+    """A model page's first hero slide shows that model's own signature
+    photograph, whatever image the capture happened to freeze there."""
     art = ART.get(slug)
     if not art:
         return t
@@ -580,37 +636,168 @@ def force_hero_scene(t: str, rel: str, slug: str) -> str:
     if not m:
         return t
     s, e = at + m.start(), at + m.end()
-    return t[:s] + m.group(1) + rel + "assets/brand/" + art + m.group(2) + t[e:]
+    return t[:s] + m.group(1) + rel + "assets/photo/" + art + m.group(2) + t[e:]
 
 
-HOME_HERO = ["scene-suv-2.svg", "scene-sedan-1.svg", "scene-van-2.svg",
-             "scene-suv-4.svg", "scene-sedan-3.svg"]
+HOME_HERO = ["hero-desert-road", "hero-sunset-road", "hero-dunes-aerial",
+             "hero-night-motion", "hero-dusk-desert"]
 
 
 def force_home_heroes(t: str) -> str:
     """The home hero carousel is the first thing anyone sees: every slide gets
-    a car scene, in a fixed rotation, instead of whatever the hash draw would
-    give it. Runs after rewrite_assets, so it retargets committed paths."""
+    a hero photograph, in a fixed rotation, instead of whatever the hash draw
+    would give it. Runs after rewrite_assets, so it retargets committed
+    paths."""
     slide_at = [m.start() for m in re.finditer("banner-slide", t)]
     if not slide_at:
         return t
     out, last, idx = [], 0, 0
     for at in slide_at:
         window = t[at:at + 8000]
-        m = re.search(r'(src=")[^"]*assets/brand/[^"]*(")', window)
+        m = re.search(r'(src=")[^"]*assets/photo/[^"]*(")', window)
         if not m:
             continue
         s, e = at + m.start(), at + m.end()
         if s < last:
             continue
-        rel_m = re.search(r'src="((?:\.\./)*)assets/brand/', window)
+        rel_m = re.search(r'src="((?:\.\./)*)assets/photo/', window)
         rel = rel_m.group(1) if rel_m else ""
         out.append(t[last:s])
-        out.append('src="' + rel + "assets/brand/" + HOME_HERO[idx % len(HOME_HERO)] + '"')
+        out.append('src="' + rel + photo(HOME_HERO[idx % len(HOME_HERO)]) + '"')
         last = e
         idx += 1
     out.append(t[last:])
     return "".join(out)
+
+
+def fix_asset_anchors(t: str, rel: str, langdir: str) -> str:
+    """A captured menu link to a CDN document (the maintenance price list PDF)
+    would otherwise be swept into a photograph by the asset pass. A link must
+    land on content, so it goes to the maintenance section instead."""
+    return re.sub(r'href="[^"]*assets/(?:photo|brand)/[^"]*"',
+                  'href="' + rel + langdir + 'service-booking/index.html#maintenance"', t)
+
+
+def inject_home_anchors(t: str) -> str:
+    """Stable ids on the home page's own sections, so menu items can land on
+    the exact block they promise: #models (the finder grid), #dealers (the
+    showroom directory), #about (the Who We Are strip)."""
+    at = t.find("tab_switcher")
+    if at != -1:
+        s = t.rfind("<section", 0, at)
+        if s != -1 and 'id="' not in t[s:t.find(">", s)]:
+            t = t[:s + len("<section")] + ' id="models"' + t[s + len("<section"):]
+    for marker, anchor in (("showroom", "dealers"), ("Who We Are", "about"), ("من نحن", "about")):
+        at = t.find(marker)
+        if at == -1:
+            continue
+        if 'id="%s"' % anchor in t:
+            continue
+        s = t.rfind("<section", 0, at)
+        if s == -1:
+            continue
+        gt = t.find(">", s)
+        if 'id="' in t[s:gt]:
+            continue
+        t = t[:s + len("<section")] + f' id="{anchor}"' + t[s + len("<section"):]
+    return t
+
+
+def aftercare_band(rel: str, lang: str, langdir: str) -> str:
+    """The ownership and aftercare band on the service page: one anchored card
+    per aftersales promise the menus point at, with the synthetic maintenance
+    price list the old PDF link now lands on."""
+    ar = lang == "ar"
+    def T(en, arb):
+        return arb if ar else en
+    book = rel + langdir + "service-booking/index.html"
+    contact = rel + langdir + "contact-us/index.html"
+    cards = [
+        ("promise", T("Customer Promise", "وعد العملاء"), photo("interior"),
+         T("Transparent pricing, genuine parts and a courtesy status update at every step. If a repair takes longer than promised, your next periodic service is on us.",
+           "أسعار شفافة وقطع أصلية وتحديث لحالة السيارة في كل خطوة. إذا تأخر الإصلاح عن الموعد الموعود، فالصيانة الدورية التالية على حسابنا."),
+         T("Book with the promise", "احجز الآن"), book),
+        ("network", T("Aftersales Network", "شبكة ما بعد البيع"), photo("hero-desert-road"),
+         T("Nine service centers across the Kingdom — Jeddah, Makkah, Madinah, Taif, Tabuk, Abha, Khamis Mushait and Yanbu — plus quick-service lanes for while-you-wait jobs.",
+           "تسعة مراكز خدمة في أنحاء المملكة — جدة ومكة والمدينة والطائف وتبوك وأبها وخميس مشيط وينبع — مع مسارات خدمة سريعة للأعمال الفورية."),
+         T("Find your center", "اعثر على مركزك"), rel + langdir + "index.html#dealers"),
+        ("maintenance", T("Periodic Maintenance", "الصيانة الدورية"), photo("service"),
+         T("Fixed-price scheduled services, booked online in under a minute.",
+           "خدمات مجدولة بأسعار ثابتة، تُحجز عبر الإنترنت في أقل من دقيقة."),
+         T("Book maintenance", "احجز الصيانة"), book),
+        ("parts", T("Parts &amp; Accessories", "قطع الغيار والإكسسوارات"), photo("night-tech"),
+         T("Genuine D·Auto parts with a 12-month warranty, and an accessory range fitted while you wait at any service center.",
+           "قطع غيار دي أوتو الأصلية بضمان 12 شهراً، ومجموعة إكسسوارات تُركب أثناء انتظارك في أي مركز خدمة."),
+         T("Ask about parts", "استفسر عن القطع"), contact),
+        ("warranty", T("Warranty", "الضمان"), photo("hero-sunset-road"),
+         T("Every new D·Auto carries a 5-year / 100,000 km vehicle warranty and 8 years on the powertrain. Check your cover from any service center.",
+           "كل سيارة دي أوتو جديدة تأتي بضمان 5 سنوات أو 100,000 كم وضمان 8 سنوات على مجموعة الدفع. تحقق من تغطيتك في أي مركز خدمة."),
+         T("Warranty questions", "أسئلة الضمان"), contact),
+        ("connect", T("D·Connect", "دي كونكت"), photo("interior"),
+         T("The connected-car service: remote lock, climate pre-start, live vehicle health and service alerts in one app, free for 5 years.",
+           "خدمة السيارة المتصلة: قفل عن بُعد وتشغيل مسبق للتكييف وحالة السيارة المباشرة وتنبيهات الصيانة في تطبيق واحد، مجاناً لمدة 5 سنوات."),
+         T("See it in service", "اطلبها مع الصيانة"), book),
+    ]
+    prices = [("10,000 km", "399"), ("20,000 km", "549"), ("40,000 km", "899"), ("60,000 km", "1,190")]
+    price_rows = "".join(
+        f'<tr><td>{k}</td><td>{T("SAR", "ر.س")} {v}</td></tr>' for k, v in prices)
+    card_html = "".join(
+        f'<article class="dps-care-card" id="{cid}">'
+        f'<img src="{rel}{img}" alt="" loading="lazy">'
+        f'<div class="dps-care-body"><h3>{title}</h3><p>{text}</p>'
+        + (f'<table class="dps-price-table"><tbody>{price_rows}</tbody></table>' if cid == "maintenance" else "")
+        + f'<a class="dps-care-cta" href="{href}">{cta}</a></div></article>'
+        for cid, title, img, text, cta, href in cards)
+    return (f'<section class="dps-band" id="aftercare" dir="{"rtl" if ar else "ltr"}">'
+            f'<div class="dps-band-head"><h2>{T("Ownership &amp; Aftercare", "الملكية وخدمات ما بعد البيع")}</h2>'
+            f'<p>{T("Everything that happens after the keys: one promise, one network, one app.", "كل ما يأتي بعد استلام المفاتيح: وعد واحد وشبكة واحدة وتطبيق واحد.")}</p></div>'
+            f'<div class="dps-band-grid">{card_html}</div></section>')
+
+
+def offers_grid(rel: str, lang: str, langdir: str) -> str:
+    """The offers landing page's actual content: the running national offers,
+    each one a door to the page where it is redeemed. The aftersales half
+    carries its own anchor because the menus link straight to it."""
+    ar = lang == "ar"
+    def T(en, arb):
+        return arb if ar else en
+    def card(img, kicker, title, text, cta, href):
+        return (f'<article class="dps-offer-card"><img src="{rel}{img}" alt="" loading="lazy">'
+                f'<div class="dps-care-body"><span class="dps-kicker">{kicker}</span>'
+                f'<h3>{title}</h3><p>{text}</p><a class="dps-care-cta" href="{href}">{cta}</a></div></article>')
+    sales = (
+        card(photo("terra-max"), T("Family offer", "عرض العائلة"),
+             T("Back to School, sorted", "العودة للمدارس بلا عناء"),
+             T("Own the family SUV from SAR 929 a month, with the first scheduled service free.",
+               "امتلك سيارة العائلة بدءاً من 929 ر.س شهرياً، مع أول صيانة مجدولة مجاناً."),
+             T("See the campaign", "شاهد الحملة"), rel + langdir + "offers/back-to-school/index.html") +
+        card(photo("vanta"), T("Finance offer", "عرض التمويل"),
+             T("VANTA from SAR 929 / month", "فانتا من 929 ر.س شهرياً"),
+             T("The flagship SUV with 0% down payment for salary-transfer customers this quarter.",
+               "السيارة الرائدة بدفعة أولى 0% لعملاء تحويل الراتب هذا الربع."),
+             T("Explore the VANTA", "اكتشف فانتا"), rel + langdir + "models/vanta/index.html") +
+        card(photo("showroom-light"), T("Season event", "فعالية الموسم"),
+             T("National Day showcase", "معرض اليوم الوطني"),
+             T("Special editions and same-day test drives at every showroom on September 23.",
+               "إصدارات خاصة وتجارب قيادة في نفس اليوم في جميع المعارض يوم 23 سبتمبر."),
+             T("Register interest", "سجل اهتمامك"), rel + langdir + "contact-us/index.html"))
+    after = (
+        card(photo("service"), T("Aftersales offer", "عرض ما بعد البيع"),
+             T("Service Season: 20% off", "موسم الصيانة: خصم 20%"),
+             T("Twenty percent off every scheduled maintenance booked online this month.",
+               "خصم عشرون بالمئة على كل صيانة مجدولة تُحجز عبر الإنترنت هذا الشهر."),
+             T("Book a service", "احجز صيانة"), rel + langdir + "service-booking/index.html#maintenance") +
+        card(photo("city-rain"), T("Trade-in", "استبدال"),
+             T("Upgrade with trade-in boost", "ارتقِ بسيارتك مع مكافأة الاستبدال"),
+             T("Bring any car for a same-day valuation and an extra SAR 3,000 toward a new D·Auto.",
+               "أحضر أي سيارة لتقييم فوري واحصل على 3,000 ر.س إضافية عند شراء دي أوتو جديدة."),
+             T("Get a valuation", "احصل على تقييم"), rel + langdir + "contact-us/index.html"))
+    return (f'<section class="dps-band" id="offers-grid" dir="{"rtl" if ar else "ltr"}">'
+            f'<div class="dps-band-head"><h2>{T("Current offers", "العروض الحالية")}</h2>'
+            f'<p>{T("Every offer below is live on this demonstration site; each card opens the page where it happens.", "كل عرض أدناه فعّال في هذا الموقع التجريبي؛ وكل بطاقة تفتح الصفحة التي يتحقق فيها.")}</p></div>'
+            f'<div class="dps-band-grid">{sales}</div>'
+            f'<div class="dps-band-head" id="aftersales"><h2>{T("Aftersales offers", "عروض ما بعد البيع")}</h2></div>'
+            f'<div class="dps-band-grid">{after}</div></section>')
 
 
 def rewrite_links(t: str, rel: str) -> str:
@@ -767,22 +954,89 @@ def mounts_block(rel: str, lang: str) -> str:
 """
 
 
+def company_main(rel: str, lang: str, langdir: str) -> str:
+    """The company page: the corporate and legal destinations the menus
+    promise, each as its own anchored section. All copy is authored for the
+    fictitious brand."""
+    ar = lang == "ar"
+    def T(en, arb):
+        return arb if ar else en
+    contact = rel + langdir + "contact-us/index.html"
+    roles = [
+        (T("Service Advisor — Jeddah", "مستشار خدمة — جدة"),
+         T("Front-of-house at our busiest service center.", "واجهة الاستقبال في أكثر مراكزنا نشاطاً.")),
+        (T("EV Technician — Riyadh", "فني مركبات كهربائية — الرياض"),
+         T("Certified high-voltage work on the coming E-Series.", "أعمال الجهد العالي المعتمدة لسلسلة E-Series القادمة.")),
+        (T("CRM Specialist — Jeddah", "أخصائي إدارة علاقات العملاء — جدة"),
+         T("Own the customer journeys this very site demonstrates.", "تولَّ رحلات العملاء التي يعرضها هذا الموقع.")),
+    ]
+    roles_html = "".join(
+        f'<article class="dps-care-card"><div class="dps-care-body"><h3>{r}</h3><p>{d}</p>'
+        f'<a class="dps-care-cta" href="{contact}">{T("Apply via contact desk", "قدّم عبر مكتب التواصل")}</a></div></article>'
+        for r, d in roles)
+    legal = [
+        ("privacy", T("Privacy Policy", "سياسة الخصوصية"),
+         T("This is a product demonstration. The only personal data this site touches is the demo contact identity a visitor explicitly creates, which exists solely inside the connected engagement-platform demo account and can be reset from the demo panel at any time. Nothing is sold, shared or used for advertising.",
+           "هذا موقع عرض توضيحي. البيانات الشخصية الوحيدة التي يتعامل معها الموقع هي هوية جهة الاتصال التجريبية التي ينشئها الزائر بنفسه، وتوجد فقط داخل حساب العرض الخاص بمنصة التفاعل ويمكن إعادة تعيينها من لوحة العرض في أي وقت. لا يُباع أي شيء ولا يُشارك ولا يُستخدم للإعلان."),),
+        ("terms", T("Terms &amp; Legal", "الشروط والأحكام"),
+         T("D·Auto is a fictitious brand created for demonstrations. Vehicles, prices, offers and showrooms on this site are invented; nothing here is an offer to sell a real vehicle, and no real manufacturer or distributor is represented.",
+           "دي أوتو علامة تجارية خيالية أُنشئت لأغراض العرض. السيارات والأسعار والعروض والمعارض في هذا الموقع مبتكرة؛ ولا يشكّل أي محتوى هنا عرضاً لبيع سيارة حقيقية، ولا يمثّل أي مصنّع أو موزّع حقيقي."),),
+        ("cookies", T("Cookies", "ملفات تعريف الارتباط"),
+         T("The site stores only what the demonstration needs in your browser: the demo session, the saved-cars list and widget display state, all namespaced to this demo and cleared by the panel's reset control. There are no advertising or analytics trackers.",
+           "يخزّن الموقع في متصفحك ما يحتاجه العرض فقط: جلسة العرض وقائمة السيارات المحفوظة وحالة عرض الودجات، وكلها ضمن نطاق هذا العرض وتُمسح بزر إعادة التعيين في اللوحة. لا توجد متتبعات إعلانات أو تحليلات."),),
+    ]
+    legal_html = "".join(
+        f'<section class="dps-page-section" id="{lid}"><h2>{title}</h2><p>{text}</p></section>'
+        for lid, title, text in legal)
+    return f"""<main class="dps-page" dir="{'rtl' if ar else 'ltr'}">
+<div class="dps-page-hero"><img src="{rel}{photo('interchange')}" alt="">
+<div class="dps-page-hero-text"><h1>{T('D·Auto Motors Co.', 'شركة دي أوتو للسيارات')}</h1>
+<p>{T('The national distributor of a car brand that exists to demonstrate what great customer engagement looks like.', 'الموزّع الوطني لعلامة سيارات وُجدت لتعرض كيف يبدو التفاعل المتميز مع العملاء.')}</p></div></div>
+<section class="dps-page-section" id="about"><h2>{T('Who we are', 'من نحن')}</h2>
+<p>{T('D·Auto Motors Co. distributes the sixteen-model D·Auto range across the Kingdom: fifteen showrooms, nine service centers and one promise — that every owner is known, remembered and looked after on every channel they use.',
+      'توزّع شركة دي أوتو للسيارات تشكيلة دي أوتو المكوّنة من ستة عشر طرازاً في أنحاء المملكة: خمسة عشر معرضاً وتسعة مراكز خدمة ووعد واحد — أن يكون كل مالك معروفاً ومُتذكَّراً ومُعتنى به في كل قناة يستخدمها.')}</p></section>
+<section class="dps-page-section" id="innovation"><h2>{T('Innovation', 'الابتكار')}</h2>
+<p>{T('From the SenseShield driver-assistance suite to the D·Connect connected-car app and the coming all-electric E-Series line, the range is built digital-first — which is exactly why this demonstration site can show a live event for everything a visitor does.',
+      'من حزمة مساعدة السائق سينس شيلد إلى تطبيق السيارة المتصلة دي كونكت وسلسلة E-Series الكهربائية القادمة، بُنيت التشكيلة رقمياً أولاً — ولهذا يستطيع موقع العرض هذا إظهار حدث مباشر لكل ما يفعله الزائر.')}</p>
+<img class="dps-page-img" src="{rel}{photo('night-tech')}" alt=""></section>
+<section class="dps-page-section" id="careers"><h2>{T('Careers', 'الوظائف')}</h2>
+<p>{T('Three roles are open this quarter.', 'ثلاث وظائف متاحة هذا الربع.')}</p>
+<div class="dps-band-grid">{roles_html}</div></section>
+<section class="dps-page-section" id="fleet"><h2>{T('Fleet &amp; business', 'الأساطيل والأعمال')}</h2>
+<p>{T('From five cars to five hundred: fleet pricing, scheduled-maintenance contracts and a dedicated account manager for every business customer.',
+      'من خمس سيارات إلى خمسمئة: أسعار أساطيل وعقود صيانة مجدولة ومدير حساب مخصص لكل عميل أعمال.')}</p>
+<img class="dps-page-img" src="{rel}{photo('fleet')}" alt="">
+<p><a class="dps-care-cta" href="{contact}">{T('Request a fleet quote', 'اطلب عرض أسطول')}</a></p></section>
+{legal_html}
+</main>"""
+
+
 def build(name: str, spec: dict) -> str:
-    src = (HYD / f"{name}.html").read_text(errors="ignore")
     out_path = spec["out"]
     rel = rel_to_root(out_path)
     lang = "ar" if name.endswith(".ar") else "en"
+    langdir = LANGDIR[lang]
     site_path = out_path[3:] if out_path.startswith("ar/") else out_path
 
-    title = re.search(r"<title>(.*?)</title>", src, re.S)
-    desc = re.search(r'<meta name="description" content="([^"]*)"', src)
-    body_m = re.search(r"<body([^>]*)>(.*)</body>", src, re.S)
-    if not body_m:
-        raise SystemExit(f"{name}: no body found")
-
-    body_attrs, body = body_m.group(1), body_m.group(2)
-
-    video_thumbs, hero_list = ld_media(src)
+    if spec.get("synthetic") == "company":
+        home_src = (HYD / f"home.{lang}.html").read_text(errors="ignore")
+        hm = re.search(r"<header\b.*?</header>", home_src, re.S)
+        fm = re.search(r"<footer\b.*?</footer>", home_src, re.S)
+        src = ""
+        body_attrs = ""
+        body = (hm.group(0) if hm else "") + company_main(rel, lang, langdir) + (fm.group(0) if fm else "")
+        title = None
+        desc = None
+        video_thumbs, hero_list = {}, []
+    else:
+        src = (HYD / f"{name}.html").read_text(errors="ignore")
+        title = re.search(r"<title>(.*?)</title>", src, re.S)
+        desc = re.search(r'<meta name="description" content="([^"]*)"', src)
+        body_m = re.search(r"<body([^>]*)>(.*)</body>", src, re.S)
+        if not body_m:
+            raise SystemExit(f"{name}: no body found")
+        body_attrs, body = body_m.group(1), body_m.group(2)
+        video_thumbs, hero_list = ld_media(src)
     body = strip_scripts(body)
     body = settle_inline_styles(body)
     body = strip_lazy_reservations(body)
@@ -793,10 +1047,19 @@ def build(name: str, spec: dict) -> str:
         body = force_hero_scene(body, rel, spec["product"])
     if spec["type"] == "home":
         body = force_home_heroes(body)
+        body = inject_home_anchors(body)
     body = rewrite_links(body, rel)
+    body = fix_asset_anchors(body, rel, langdir)
     body = swap_logos(body)
     body = strip_profile_button(body)
     body = wire_test_drive(body, spec.get("product", "vanta"))
+
+    # The authored bands ride just above the footer: the aftercare cards on
+    # the service page, the offers grid on the offers landing page.
+    if name.startswith("service."):
+        body = re.sub(r"(<footer)", aftercare_band(rel, lang, langdir).replace("\\", "\\\\") + r"\n\1", body, count=1)
+    if name.startswith("offers."):
+        body = re.sub(r"(<footer)", offers_grid(rel, lang, langdir).replace("\\", "\\\\") + r"\n\1", body, count=1)
 
     # The header needs the class js/slots.js measures.
     body = re.sub(r"<header\b([^>]*)class=\"", r'<header\1class="site-header ', body, count=1)
@@ -834,8 +1097,15 @@ def build(name: str, spec: dict) -> str:
     body_attrs = re.sub(r'style="[^"]*"', "", body_attrs)
 
     dirattr = "rtl" if lang == "ar" else "ltr"
-    page_title = title.group(1).strip() if title else "D·Auto Saudi Arabia"
-    page_desc = (desc.group(1) if desc else "").replace('"', "&quot;")
+    if spec.get("synthetic") == "company":
+        page_title = ("شركة دي أوتو للسيارات | دي أوتو" if lang == "ar"
+                      else "D·Auto Motors Co. | D·Auto")
+        page_desc = ("عن شركة دي أوتو: من نحن، الابتكار، الوظائف، الأساطيل والسياسات."
+                     if lang == "ar" else
+                     "About D·Auto Motors Co.: who we are, innovation, careers, fleet and policies.")
+    else:
+        page_title = title.group(1).strip() if title else "D·Auto Saudi Arabia"
+        page_desc = (desc.group(1) if desc else "").replace('"', "&quot;")
 
     head = head_block(name, spec, page_title, page_desc, rel, lang, body_attrs)
     mounts = mounts_block(rel, lang)

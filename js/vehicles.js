@@ -30,31 +30,27 @@
         { id: 'voyager',         name: { en: 'VOYAGER',         ar: 'فوياجر' },         category: 'MPV',   price: 136224, pdp: true }
     ];
 
-    /* Brand artwork per model: a scene card from the D·Auto visual system,
-       varied by body style and palette so the range reads as a range, plus a
-       transparent cutout per body style for the model cards. The paths are
-       spelled out in full because the asset pruner keeps whatever these
-       literal strings reference: assets/brand/cut-sedan.svg,
-       assets/brand/cut-suv.svg, assets/brand/cut-van.svg. */
-    var CUT = { Sedan: 'assets/brand/cut-sedan.svg', SUV: 'assets/brand/cut-suv.svg', MPV: 'assets/brand/cut-van.svg' };
-
+    /* Photography per model: real photographs committed under assets/photo/
+       (Unsplash License; filenames keep the photo id for provenance, and the
+       README carries the credit list). Each model keeps one signature shot,
+       mirrored by the build's ART map. */
     var ART = {
-        'pulse':           'assets/brand/scene-sedan-1.svg',
-        'sovereign':       'assets/brand/scene-sedan-2.svg',
-        'vector':          'assets/brand/scene-sedan-3.svg',
-        'neo':             'assets/brand/scene-sedan-4.svg',
-        'serene':          'assets/brand/scene-sedan-1.svg',
-        'terra':           'assets/brand/scene-suv-1.svg',
-        'terra-max':       'assets/brand/scene-suv-2.svg',
-        'apex':            'assets/brand/scene-suv-3.svg',
-        'summit':          'assets/brand/scene-suv-4.svg',
-        'ridge':           'assets/brand/scene-suv-1.svg',
-        'vanta':           'assets/brand/scene-suv-2.svg',
-        'urban':           'assets/brand/scene-suv-3.svg',
-        'nova':            'assets/brand/scene-van-1.svg',
-        'voyager-premium': 'assets/brand/scene-van-2.svg',
-        'voyager-van':     'assets/brand/scene-van-3.svg',
-        'voyager':         'assets/brand/scene-van-4.svg'
+        'pulse':           'assets/photo/1502877338535.jpg',
+        'sovereign':       'assets/photo/1616422285623.jpg',
+        'vector':          'assets/photo/1555215695.jpg',
+        'neo':             'assets/photo/1739738709610.jpg',
+        'serene':          'assets/photo/1493238792000.jpg',
+        'terra':           'assets/photo/1637189300412.jpg',
+        'terra-max':       'assets/photo/1519641471654.jpg',
+        'apex':            'assets/photo/1600661653561.jpg',
+        'summit':          'assets/photo/1533473359331.jpg',
+        'ridge':           'assets/photo/1523996183508.jpg',
+        'vanta':           'assets/photo/1653491493226.jpg',
+        'urban':           'assets/photo/1549399542.jpg',
+        'nova':            'assets/photo/1568605117036.jpg',
+        'voyager-premium': 'assets/photo/1623371857133.jpg',
+        'voyager-van':     'assets/photo/1548379269.jpg',
+        'voyager':         'assets/photo/1623371857133.jpg'
     };
 
     function lang() {
@@ -72,7 +68,7 @@
             categoryPath: 'Vehicles>' + model.category,
             price: model.price,
             image: ART[model.id] || null,
-            cutout: CUT[model.category] || null,
+            cutout: null,
             pdp: !!model.pdp,
             path: model.path || model.id
         };

@@ -529,3 +529,48 @@ html.dps-locked { overflow: hidden; }
 [data-save-car] { cursor: pointer; }
 [data-save-car] svg { fill: none; stroke: currentColor; }
 [data-save-car].saved svg { fill: var(--hy-red); stroke: var(--hy-red); }
+
+/* ==================== Authored content bands ==================== */
+/* The aftercare band (service page), the offers grid (offers page), the
+   company page and the contact-info column: native-looking sections built
+   by the demo, styled once here. */
+.dps-band { max-width: 1240px; margin: 0 auto; padding: 72px 24px 40px; }
+.dps-band-head { max-width: 640px; margin: 0 0 28px; }
+.dps-band-head h2 { font-size: 30px; line-height: 1.2; color: #0e1215; margin: 0 0 10px; font-weight: 700; }
+.dps-band-head p { color: #5b6166; font-size: 15px; line-height: 1.55; margin: 0; }
+.dps-band-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 22px; margin-bottom: 26px; }
+.dps-care-card, .dps-offer-card { background: #fff; border: 1px solid #ebebeb; border-radius: 10px; overflow: hidden; display: flex; flex-direction: column; scroll-margin-top: 110px; }
+.dps-care-card > img, .dps-offer-card > img { width: 100%; height: 172px; object-fit: cover; display: block; }
+.dps-care-body { padding: 18px 20px 20px; display: flex; flex-direction: column; gap: 10px; flex: 1; }
+.dps-care-body h3 { margin: 0; font-size: 18px; color: #0e1215; font-weight: 700; }
+.dps-care-body p { margin: 0; font-size: 13.5px; line-height: 1.55; color: #5b6166; flex: 1; }
+.dps-kicker { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: #e63312; font-weight: 700; }
+.dps-care-cta { align-self: flex-start; background: #002c5f; color: #fff !important; text-decoration: none; font-size: 13px; font-weight: 600; padding: 10px 18px; border-radius: 4px; }
+.dps-care-cta:hover { background: #013c7e; }
+.dps-price-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.dps-price-table td { padding: 6px 4px; border-bottom: 1px solid #f0f0f0; color: #0e1215; }
+.dps-price-table td:last-child { text-align: end; font-weight: 600; }
+
+/* Company page */
+.dps-page { max-width: 1080px; margin: 0 auto; padding: 118px 24px 56px; }
+.dps-page-hero { position: relative; border-radius: 12px; overflow: hidden; margin-bottom: 40px; }
+.dps-page-hero img { width: 100%; height: 340px; object-fit: cover; display: block; filter: brightness(.62); }
+.dps-page-hero-text { position: absolute; inset-inline-start: 36px; bottom: 30px; color: #fff; max-width: 560px; }
+.dps-page-hero-text h1 { margin: 0 0 8px; font-size: 34px; font-weight: 800; }
+.dps-page-hero-text p { margin: 0; font-size: 15px; line-height: 1.5; opacity: .92; }
+.dps-page-section { padding: 26px 0; border-bottom: 1px solid #eee; scroll-margin-top: 110px; }
+.dps-page-section:last-child { border-bottom: 0; }
+.dps-page-section h2 { font-size: 24px; margin: 0 0 12px; color: #0e1215; font-weight: 700; }
+.dps-page-section p { font-size: 15px; line-height: 1.6; color: #444a4f; max-width: 720px; margin: 0 0 14px; }
+.dps-page-img { width: 100%; max-width: 720px; border-radius: 10px; display: block; margin: 6px 0 4px; }
+
+/* Contact page: the unpinned info column */
+.dps-contact-info { margin-top: 26px; border: 1px solid #ebebeb; border-radius: 10px; overflow: hidden; background: #fff; max-width: 420px; }
+.dps-contact-info img { width: 100%; height: 160px; object-fit: cover; display: block; }
+.dps-contact-info ul { list-style: none; margin: 0; padding: 16px 20px 20px; display: flex; flex-direction: column; gap: 10px; }
+.dps-contact-info li { font-size: 14px; color: #0e1215; }
+.dps-contact-info a { color: #002c5f; text-decoration: none; font-weight: 600; }
+.dps-contact-info a:hover { text-decoration: underline; }
+
+/* Anchored home sections land below the fixed header */
+#models, #dealers, #about, #aftercare, #aftersales, #offers-grid { scroll-margin-top: 110px; }

@@ -370,6 +370,74 @@
         });
     }
 
+    /* The featured-models category tabs are plain styled divs on the live
+       property, driven entirely by script; the capture keeps their look and
+       loses their behaviour. Wire them back: each tab filters the model rail
+       to its own category, in either language. */
+    function wireModelTabs() {
+        var CATS = [
+            [/جميع|^all cars$|^all$/i, null],
+            [/سيدان|^sedan$/i, 'Sedan'],
+            [/رباعي|^suv$/i, 'SUV'],
+            [/متعددة|فان|عائل|^mpv$/i, 'MPV']
+        ];
+        function catOfLabel(text) {
+            for (var i = 0; i < CATS.length; i++) {
+                if (CATS[i][0].test(text.trim())) return CATS[i];
+            }
+            return null;
+        }
+        function catOfCard(card) {
+            var label = (card.getAttribute('models_name') || '').trim().toLowerCase();
+            var hit = null;
+            if (window.Catalog) {
+                window.Catalog.all().forEach(function (c) {
+                    if (hit) return;
+                    if (c.nameEn.toLowerCase() === label || c.nameAr.toLowerCase() === label ||
+                        c.id === label || label.indexOf(c.nameEn.toLowerCase()) === 0 ||
+                        label.indexOf(c.nameAr.toLowerCase()) === 0) hit = c;
+                });
+            }
+            return hit ? hit.category : null;
+        }
+        $$('.tab_switcher').forEach(function (row) {
+            var items = $$('.tab_switcher_item', row);
+            if (items.length < 2 || row.__dps) return;
+            row.__dps = true; row.setAttribute('data-dps-wired', '1');
+            var rail = null;
+            var sec = row.closest('section') || document;
+            var list = sec.querySelector('.feacted_model_list') || document.querySelector('.feacted_model_list');
+            if (list) rail = list.parentElement;
+            function activate(item) {
+                items.forEach(function (x) {
+                    var on = x === item;
+                    ['active', 'bg-white', 'font-medium', '!text-black'].forEach(function (cls) {
+                        x.classList.toggle(cls, on);
+                    });
+                    var sp = x.querySelector('.tab_text');
+                    if (sp) ['active', 'font-medium', '!text-black'].forEach(function (cls) {
+                        sp.classList.toggle(cls, on);
+                    });
+                });
+            }
+            items.forEach(function (item) {
+                item.setAttribute('data-dps-wired', '1');
+                item.style.cursor = 'pointer';
+                item.addEventListener('click', function () {
+                    var span = item.querySelector('.tab_text');
+                    var picked = catOfLabel(span ? span.textContent : item.textContent);
+                    var cat = picked ? picked[1] : null;
+                    activate(item);
+                    $$('.model-card').forEach(function (card) {
+                        var c = catOfCard(card);
+                        card.style.display = (!cat || c === cat) ? '' : 'none';
+                    });
+                    if (rail && rail.scrollTo) rail.scrollTo({ left: 0, behavior: 'smooth' });
+                });
+            });
+        });
+    }
+
     /* react-select renders its menu only while open, so a capture holds an
        empty shell. Each shell gets a plain menu whose options come from the
        page itself where possible (the branch names on it), and from the
@@ -921,21 +989,33 @@
         });
     }
 
-    /* The service-booking page pairs its form with an illustration the
-       captured property mounts by script; the left column otherwise sits
-       empty. The page gets a scene from the brand system. */
-    function dressServicePage() {
-        if (location.pathname.indexOf('service-booking') === -1) return;
-        var heads = $$('main h1, main h2').filter(function (h) { return h.textContent.trim().length > 4; });
-        var head = heads[0];
-        if (!head) return;
-        var col = head.parentElement;
-        if (!col || col.querySelector('img')) return;
-        var img = document.createElement('img');
-        img.src = sitePrefix() + 'assets/brand/scene-suv-4.svg';
-        img.alt = '';
-        img.style.cssText = 'width:560px;max-width:92%;height:auto;border-radius:8px;margin-top:28px;display:block;';
-        col.appendChild(img);
+    /* The contact page pairs its form with a scripted, scroll-pinned header
+       column; a static capture freezes the pin spacer at its full scripted
+       height, leaving a tall blank column beside the form. Unpin it and give
+       the column the contact information the layout was reserving room
+       for. */
+    function dressContactPage() {
+        if (location.pathname.indexOf('contact-us') === -1) return;
+        var ar = langCode() === 'ar';
+        var spacer = $('.pin-spacer');
+        var head = $('.form_header_section');
+        if (spacer) { spacer.style.height = 'auto'; spacer.style.minHeight = '0'; }
+        if (!head || head.querySelector('.dps-contact-info')) return;
+        head.style.height = 'auto';
+        head.style.position = 'relative';
+        head.style.transform = 'none';
+        var info = document.createElement('div');
+        info.className = 'dps-contact-info';
+        info.innerHTML =
+            '<img src="' + sitePrefix() + 'assets/photo/1449965408869.jpg" alt="">' +
+            '<ul>' +
+            '<li><a href="tel:8001002000">' + (ar ? 'مركز الاتصال: 8001002000' : 'Call center: 800 100 2000') + '</a></li>' +
+            '<li><a href="https://wa.me/+9668001002000" target="_blank" rel="noopener">' + (ar ? 'واتساب: +966 800 100 2000' : 'WhatsApp: +966 800 100 2000') + '</a></li>' +
+            '<li><a href="mailto:hello@d-auto.example">hello@d-auto.example</a></li>' +
+            '<li>' + (ar ? 'السبت–الخميس، 9 صباحاً – 9 مساءً' : 'Saturday–Thursday, 9:00–21:00') + '</li>' +
+            '<li><a href="' + sitePrefix() + langDir() + 'index.html#dealers">' + (ar ? 'جميع المعارض ومراكز الخدمة' : 'All showrooms & service centers') + '</a></li>' +
+            '</ul>';
+        head.appendChild(info);
     }
 
     /* The colour configurator is fed by an API call the live site makes when
@@ -1040,17 +1120,19 @@
             window.Catalog.all().forEach(function (c) {
                 if (model) return;
                 if (c.nameEn.toLowerCase() === label || c.nameAr.toLowerCase() === label ||
-                    c.id === label || label.indexOf(c.nameEn.toLowerCase()) === 0) model = c;
+                    c.id === label || label.indexOf(c.nameEn.toLowerCase()) === 0 ||
+                    label.indexOf(c.nameAr.toLowerCase()) === 0) model = c;
             });
             if (!model) return;
-            var art = model.cutout || model.image;
+            var art = model.image || model.cutout;
             if (art && !card.querySelector('img')) {
                 var img = document.createElement('img');
                 img.src = pre + art;
                 img.alt = model.name;
-                img.style.cssText = 'position:absolute;left:0;right:0;top:50%;' +
-                    'transform:translateY(-40%);width:100%;max-height:62%;' +
-                    'object-fit:contain;pointer-events:none;';
+                img.style.cssText = 'position:absolute;left:8%;right:8%;top:50%;' +
+                    'transform:translateY(-42%);width:84%;height:58%;' +
+                    'object-fit:cover;border-radius:10px;pointer-events:none;' +
+                    'box-shadow:0 10px 26px rgba(0,0,0,.18);';
                 card.appendChild(img);
             }
             card.style.cursor = 'pointer';
@@ -1224,6 +1306,7 @@
         wireFunnelButtons();
         wireCarousels();
         wireDragRails();
+        wireModelTabs();
         wireArrows();
         wireSelects();
         wireChoiceChips();
@@ -1235,7 +1318,7 @@
         wireLeadForms();
         hideColorConfigurators();
         dressFooter();
-        dressServicePage();
+        dressContactPage();
         paintHearts();
 
         if (window.Panels) window.Panels.init();

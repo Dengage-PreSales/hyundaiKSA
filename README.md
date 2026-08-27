@@ -59,3 +59,11 @@ it identifies the visitor as a demo contact (a `DPS-` key) in the shared
 Dengage presales application and fires the corresponding demo events. No form
 data goes anywhere else. The SDK identifiers in the pages are public-by-design
 values, not credentials.
+
+## Photography credits
+
+All photography on the site is from [Unsplash](https://unsplash.com), used
+under the Unsplash License (free to use, no attribution required — credited
+here anyway). Files under `assets/photo/` are named by their Unsplash photo
+id (`images.unsplash.com/photo-<id>`), so every image's source page is
+recoverable from its filename.
